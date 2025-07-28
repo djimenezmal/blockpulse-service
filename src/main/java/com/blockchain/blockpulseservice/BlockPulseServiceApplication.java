@@ -6,8 +6,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
 @EnableScheduling
-public class BlockpulseServiceApplication {
+public class BlockPulseServiceApplication {
     public static void main(String[] args) {
-        SpringApplication.run(BlockpulseServiceApplication.class, args);
+        SpringApplication.run(BlockPulseServiceApplication.class, args);
     }
 }
