@@ -1,8 +1,11 @@
-package com.blockchain.blockpulseservice;
+package com.blockchain.blockpulseservice.wsclient;
 
-import com.blockchain.blockpulseservice.wsclient.BaseWebSocketSessionClient;
+import com.blockchain.blockpulseservice.tx.BlockchainInfoWebSocketMessage;
+import com.blockchain.blockpulseservice.tx.Transaction;
+import com.blockchain.blockpulseservice.tx.TransactionMapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 import org.springframework.web.socket.BinaryMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.client.WebSocketClient;
@@ -11,6 +14,7 @@ import java.net.URI;
 import java.util.concurrent.ScheduledExecutorService;
 
 @Slf4j
+@Component
 public class BlockchainInfoWebSocketClient extends BaseWebSocketSessionClient {
     
     private static final String BLOCKCHAIN_INFO_WS_URL = "wss://ws.blockchain.info/inv";

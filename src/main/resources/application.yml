@@ -1,0 +1,33 @@
+spring:
+  application:
+    name: blockpulse-service
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    default-property-inclusion: non_null
+
+server:
+  port: 8080
+
+logging:
+  level:
+    com.blockchain.blockpulseservice: INFO
+    org.springframework.web.socket: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+# Custom application properties
+app:
+  websocket:
+    reconnect-delay: 5000
+    max-reconnect-attempts: 10

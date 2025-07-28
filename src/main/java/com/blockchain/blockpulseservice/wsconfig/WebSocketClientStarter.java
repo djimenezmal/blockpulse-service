@@ -1,5 +1,6 @@
-package com.blockchain.blockpulseservice;
+package com.blockchain.blockpulseservice.wsconfig;
 
+import com.blockchain.blockpulseservice.wsclient.BlockchainInfoWebSocketClient;
 import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,9 +14,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class WebSocketClientStarter {
     
-    private final BTCWebSocketClient btcClient;
-    private final KaspaWebSocketClient kaspaClient;
-    
+    private final BlockchainInfoWebSocketClient btcClient;
+
     @EventListener(ApplicationReadyEvent.class)
     public void startWebSocketConnections() {
         log.info("Starting WebSocket connections...");
@@ -27,14 +27,6 @@ public class WebSocketClientStarter {
         } catch (Exception e) {
             log.error("Failed to connect BTC WebSocket client", e);
         }
-        
-        try {
-            // Start Kaspa WebSocket connection
-            kaspaClient.connect();
-            log.info("Kaspa WebSocket client connected");
-        } catch (Exception e) {
-            log.error("Failed to connect Kaspa WebSocket client", e);
-        }
     }
     
     @PreDestroy
@@ -42,15 +34,9 @@ public class WebSocketClientStarter {
         log.info("Shutting down WebSocket connections...");
         
         try {
-            btcClient.shutdown();
+            btcClient.disconnect();
         } catch (Exception e) {
             log.error("Error shutting down BTC client", e);
-        }
-        
-        try {
-            kaspaClient.shutdown();
-        } catch (Exception e) {
-            log.error("Error shutting down Kaspa client", e);
         }
     }
 }
