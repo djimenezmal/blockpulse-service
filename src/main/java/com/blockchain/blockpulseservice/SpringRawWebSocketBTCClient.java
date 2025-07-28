@@ -1,6 +1,5 @@
 package com.blockchain.blockpulseservice;
 
-import com.crypto.feemarketcomparator.service.TransactionService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -41,7 +40,7 @@ public class SpringRawWebSocketBTCClient {
         try {
             WebSocketHandler handler = new BTCWebSocketHandler();
             
-            CompletableFuture<WebSocketSession> future = client.doHandshake(
+            CompletableFuture<WebSocketSession> future = client.execute(
                 handler,
                 null,
                 URI.create("wss://ws.blockchain.info/inv")

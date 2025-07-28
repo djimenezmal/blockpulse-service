@@ -15,9 +15,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class FeeAnalysisService {
     
-    private final TransactionRepository transactionRepository;
-    private final BlockStatsRepository blockStatsRepository;
-    
+
     public FeeAnalysisDTO generateFeeAnalysis(Transaction.CryptoCurrency currency) {
         LocalDateTime oneHourAgo = LocalDateTime.now().minusHours(1);
         
