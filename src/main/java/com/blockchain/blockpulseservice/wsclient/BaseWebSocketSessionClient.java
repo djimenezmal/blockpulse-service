@@ -15,6 +15,7 @@ import java.util.concurrent.ScheduledExecutorService;
 
 @Slf4j
 public abstract class BaseWebSocketSessionClient implements WebSocketHandler {
+    private static final int MAX_BUFFER_SIZE = 4 * 1024 * 1024;
 
     protected final WebSocketClient webSocketClient;
     protected final ObjectMapper objectMapper;
@@ -36,12 +37,10 @@ public abstract class BaseWebSocketSessionClient implements WebSocketHandler {
         this.webSocketClient = webSocketClient;
         this.objectMapper = objectMapper;
         this.serverUri = serverUri;
-
-        // Initialize managers
         this.connectionState = new ConnectionStateManager();
         this.heartbeatManager = new HeartbeatManager(scheduler, serverUri, this::handleConnectionLoss);
         this.reconnectionManager = new ReconnectionManager(scheduler, serverUri, this::performReconnect);
-        this.messageHandler = new WebSocketMessageHandler(serverUri, this::processMessage, this::handleBinaryMessage);
+        this.messageHandler = new WebSocketMessageHandler(serverUri, this::processMessage);
         this.messageSender = new WebSocketMessageSender(serverUri, this::handleConnectionLoss);
     }
 
@@ -63,13 +62,13 @@ public abstract class BaseWebSocketSessionClient implements WebSocketHandler {
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
         this.session = session;
+        this.session.setTextMessageSizeLimit(MAX_BUFFER_SIZE);
         connectionState.setConnected(true);
         reconnectionManager.resetAttempts();
         reconnectionManager.cancelReconnect();
 
         log.info("WebSocket connected to: {}", serverUri);
 
-        // Start heartbeat
         heartbeatManager.startHeartbeat(session);
 
         // Perform connection-specific initialization
@@ -129,16 +128,18 @@ public abstract class BaseWebSocketSessionClient implements WebSocketHandler {
         messageSender.sendMessage(session, message);
     }
 
-    protected void sendBinaryMessage(byte[] data) {
-        messageSender.sendBinaryMessage(session, data);
-    }
-
     public void disconnect() {
         connectionState.setShouldReconnect(false);
         reconnectionManager.cancelReconnect();
         heartbeatManager.stopHeartbeat();
 
-        // Close session
+        closeSession();
+
+        connectionState.setConnected(false);
+        log.info("Disconnected from {}", serverUri);
+    }
+
+    private void closeSession() {
         if (session != null && session.isOpen()) {
             try {
                 session.close(CloseStatus.NORMAL);
@@ -146,18 +147,13 @@ public abstract class BaseWebSocketSessionClient implements WebSocketHandler {
                 log.error("Error closing WebSocket session for {}", serverUri, e);
             }
         }
-
-        connectionState.setConnected(false);
-        log.info("Disconnected from {}", serverUri);
     }
 
     public boolean isConnected() {
         return connectionState.isConnected() && session != null && session.isOpen();
     }
 
-    // Abstract methods to be implemented by subclasses
     protected abstract void onConnectionEstablished(WebSocketSession session);
     protected abstract void processMessage(String message) throws Exception;
     protected abstract void onConnectionLost();
-    protected abstract void handleBinaryMessage(WebSocketSession session, org.springframework.web.socket.BinaryMessage message);
 }

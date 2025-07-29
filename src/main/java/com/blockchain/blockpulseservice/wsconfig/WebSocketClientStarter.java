@@ -21,7 +21,6 @@ public class WebSocketClientStarter {
         log.info("Starting WebSocket connections...");
         
         try {
-            // Start BTC WebSocket connection
             btcClient.connect();
             log.info("BTC WebSocket client connected");
         } catch (Exception e) {

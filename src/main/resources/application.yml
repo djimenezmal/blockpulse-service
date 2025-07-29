@@ -11,11 +11,8 @@ server:
 
 logging:
   level:
-    com.blockchain.blockpulseservice: INFO
+    com.blockchain.blockpulseservice: DEBUG
     org.springframework.web.socket: DEBUG
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
-    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
 
 management:
   endpoints:

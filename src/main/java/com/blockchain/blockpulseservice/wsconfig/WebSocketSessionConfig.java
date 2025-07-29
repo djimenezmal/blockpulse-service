@@ -18,6 +18,7 @@ public class WebSocketSessionConfig {
     
     @Bean
     public ScheduledExecutorService webSocketScheduler() {
-        return Executors.newScheduledThreadPool(4);
+        int processors = Runtime.getRuntime().availableProcessors();
+        return Executors.newScheduledThreadPool(processors);
     }
 }
