@@ -1,8 +1,7 @@
 package com.blockchain.blockpulseservice.wsclient;
 
-import com.blockchain.blockpulseservice.tx.BlockchainInfoWebSocketMessage;
-import com.blockchain.blockpulseservice.tx.Transaction;
 import com.blockchain.blockpulseservice.tx.TransactionMapper;
+import com.blockchain.blockpulseservice.tx.TransactionWrapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -15,9 +14,7 @@ import java.util.concurrent.ScheduledExecutorService;
 @Slf4j
 @Component
 public class BlockchainInfoWebSocketClient extends BaseWebSocketSessionClient {
-    
     private static final String BLOCKCHAIN_INFO_WS_URL = "wss://ws.blockchain.info/inv";
-    
     private final TransactionMapper transactionMapper;
 
     public BlockchainInfoWebSocketClient(WebSocketClient webSocketClient,
@@ -42,11 +39,9 @@ public class BlockchainInfoWebSocketClient extends BaseWebSocketSessionClient {
         log.debug("Processing message: {}", message.substring(0, Math.min(200, message.length())));
         
         try {
-            BlockchainInfoWebSocketMessage wsMessage = objectMapper.readValue(message, BlockchainInfoWebSocketMessage.class);
-            
-            if (wsMessage.getOperation() != null && wsMessage.getTransaction() != null) {
-                var transaction = transactionMapper.mapToTransaction(wsMessage.getTransaction());
-            }
+            var transactionWrapper = objectMapper.readValue(message, TransactionWrapper.class);
+            var transaction = transactionMapper.mapToTransactionDTO(transactionWrapper.transactionData());
+            log.info("Mapped transaction: {}", transaction.toString());
         } catch (Exception e) {
             log.error("Error processing blockchain.info message: {}", message, e);
         }

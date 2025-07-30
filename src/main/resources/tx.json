@@ -1,0 +1,49 @@
+{
+  "op": "utx",
+  "x": {
+    "lock_time": 0,
+    "ver": 2,
+    "size": 223,
+    "inputs": [
+      {
+        "sequence": 4294967293,
+        "prev_out": {
+          "spent": true,
+          "tx_index": 0,
+          "type": 0,
+          "addr": "bc1q2xjpc5u355zzxtxkckjehphztcpmd2zw22yqx7",
+          "value": 796605,
+          "n": 3,
+          "script": "001451a41c5391a504232cd6c5a59b86e25e03b6a84e"
+        },
+        "script": ""
+      }
+    ],
+    "time": 1753901638,
+    "tx_index": 0,
+    "vin_sz": 1,
+    "hash": "f39d6c89f55f614900db175828587464959e213529df02cf29c77ddc9e1ff4d6",
+    "vout_sz": 2,
+    "relayed_by": "0.0.0.0",
+    "out": [
+      {
+        "spent": false,
+        "tx_index": 0,
+        "type": 0,
+        "addr": "bc1q6u4q5fgtx4p66286argkrtp5xnd69rlmp463jq",
+        "value": 397885,
+        "n": 0,
+        "script": "0014d72a0a250b3543ad28fae8d161ac3434dba28ffb"
+      },
+      {
+        "spent": false,
+        "tx_index": 0,
+        "type": 0,
+        "addr": "bc1qjrulqekmef93j9m30zak73fhm3ycmme7ad6hr5",
+        "value": 398439,
+        "n": 1,
+        "script": "001490f9f066dbca4b19177178bb6f4537dc498def3e"
+      }
+    ]
+  }
+}

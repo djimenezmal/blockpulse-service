@@ -81,7 +81,7 @@ public abstract class BaseWebSocketSessionClient implements WebSocketHandler {
 
     @Override
     public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) {
-        messageHandler.handleMessage(session, message);
+        messageHandler.handleMessage(message);
     }
 
     @Override

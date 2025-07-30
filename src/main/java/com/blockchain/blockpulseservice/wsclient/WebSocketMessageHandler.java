@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.socket.PongMessage;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketMessage;
-import org.springframework.web.socket.WebSocketSession;
 
 import java.net.URI;
 
@@ -18,12 +17,11 @@ public class WebSocketMessageHandler {
         this.messageProcessor = messageProcessor;
     }
 
-    public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) {
-        log.debug("RECEIVED message from {}: {}", serverUri, message.getClass().getSimpleName());
+    public void handleMessage(WebSocketMessage<?> message) {
         try {
             if (message instanceof TextMessage textMessage) {
                 var payload = textMessage.getPayload();
-                log.debug("Received message from {}: {}", serverUri, payload.substring(0, Math.min(100, payload.length())));
+                //log.debug("Received message from {}: {}", serverUri, payload);
                 messageProcessor.processMessage(payload);
             } else if (message instanceof PongMessage) {
                 log.debug("Received pong from {}", serverUri);
