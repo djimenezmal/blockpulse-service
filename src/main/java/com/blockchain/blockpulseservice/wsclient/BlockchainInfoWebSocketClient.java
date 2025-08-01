@@ -1,5 +1,6 @@
 package com.blockchain.blockpulseservice.wsclient;
 
+import com.blockchain.blockpulseservice.service.FeeSurgeService;
 import com.blockchain.blockpulseservice.tx.TransactionMapper;
 import com.blockchain.blockpulseservice.tx.TransactionDTOWrapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,13 +17,15 @@ import java.util.concurrent.ScheduledExecutorService;
 public class BlockchainInfoWebSocketClient extends BaseWebSocketSessionClient {
     private static final String BLOCKCHAIN_INFO_WS_URL = "wss://ws.blockchain.info/inv";
     private final TransactionMapper transactionMapper;
+    private final FeeSurgeService feeSurgeService;
 
     public BlockchainInfoWebSocketClient(WebSocketClient webSocketClient,
-                                         ObjectMapper objectMapper,
                                          ScheduledExecutorService scheduler,
-                                         TransactionMapper transactionMapper) {
-        super(webSocketClient, objectMapper, scheduler, URI.create(BLOCKCHAIN_INFO_WS_URL));
+                                         TransactionMapper transactionMapper,
+                                         FeeSurgeService feeSurgeService) {
+        super(webSocketClient, scheduler, URI.create(BLOCKCHAIN_INFO_WS_URL));
         this.transactionMapper = transactionMapper;
+        this.feeSurgeService = feeSurgeService;
     }
 
     @Override
@@ -33,7 +36,7 @@ public class BlockchainInfoWebSocketClient extends BaseWebSocketSessionClient {
     }
     
     @Override
-    protected void processMessage(String message) throws Exception {
+    protected void processMessage(String message) {
         log.debug("Processing message: {}", message.substring(0, Math.min(200, message.length())));
         
         try {
@@ -43,11 +46,6 @@ public class BlockchainInfoWebSocketClient extends BaseWebSocketSessionClient {
         } catch (Exception e) {
             log.error("Error processing blockchain.info message: {}", message, e);
         }
-    }
-    
-    @Override
-    protected void onConnectionLost() {
-        log.warn("Lost connection to Blockchain.info WebSocket");
     }
     
     private void subscribeToUnconfirmedTransactions() {

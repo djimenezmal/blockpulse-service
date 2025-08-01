@@ -1,33 +1,21 @@
 package com.blockchain.blockpulseservice.wsclient;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.socket.PongMessage;
+import org.springframework.stereotype.Component;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketMessage;
 
 import java.net.URI;
+import java.util.function.Consumer;
 
 @Slf4j
+@Component
 public class WebSocketMessageHandler {
-    private final URI serverUri;
-    private final MessageProcessor messageProcessor;
-
-    public WebSocketMessageHandler(URI serverUri, MessageProcessor messageProcessor) {
-        this.serverUri = serverUri;
-        this.messageProcessor = messageProcessor;
-    }
-
-    public void handleMessage(WebSocketMessage<?> message) {
-        try {
-            if (message instanceof TextMessage textMessage) {
-                var payload = textMessage.getPayload();
-                //log.debug("Received message from {}: {}", serverUri, payload);
-                messageProcessor.processMessage(payload);
-            } else if (message instanceof PongMessage) {
-                log.debug("Received pong from {}", serverUri);
-            }
-        } catch (Exception e) {
-            log.error("Error processing message from {}", serverUri, e);
+    public void handleMessage(WebSocketMessage<?> message, Consumer<String> messageConsumer, URI serverUri) {
+        if (message instanceof TextMessage textMessage) {
+            var payload = textMessage.getPayload();
+            log.debug("Received message from {}: {}", serverUri, payload);
+            messageConsumer.accept(payload);
         }
     }
 }

@@ -1,8 +1,8 @@
 package com.blockchain.blockpulseservice.wsclient;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.WebSocketMessage;
@@ -11,37 +11,39 @@ import org.springframework.web.socket.client.WebSocketClient;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.Consumer;
 
 @Slf4j
 public abstract class BaseWebSocketSessionClient implements WebSocketHandler {
-    private static final int MAX_BUFFER_SIZE = 4 * 1024 * 1024;
-
-    protected final WebSocketClient webSocketClient;
-    protected final ObjectMapper objectMapper;
+    private WebSocketSession session;
     protected final URI serverUri;
-
-    @Getter
-    protected WebSocketSession session;
-
+    private final int messageSizeLimit;
+    private final WebSocketClient webSocketClient;
     private final ConnectionStateManager connectionState;
-    private final HeartbeatManager heartbeatManager;
     private final ReconnectionManager reconnectionManager;
     private final WebSocketMessageHandler messageHandler;
     private final WebSocketMessageSender messageSender;
+    protected final ObjectMapper objectMapper;
 
-    public BaseWebSocketSessionClient(WebSocketClient webSocketClient,
-                                      ObjectMapper objectMapper,
-                                      ScheduledExecutorService scheduler,
-                                      URI serverUri) {
+    protected BaseWebSocketSessionClient(WebSocketClient webSocketClient,
+                                         URI serverUri,
+                                         WebSocketSession session,
+                                         @Value("${app.websocket.message.size.limit}")
+                                         int messageSizeLimit,
+                                         ConnectionStateManager connectionState,
+                                         ReconnectionManager reconnectionManager,
+                                         WebSocketMessageHandler messageHandler,
+                                         WebSocketMessageSender messageSender,
+                                         ObjectMapper objectMapper) {
         this.webSocketClient = webSocketClient;
-        this.objectMapper = objectMapper;
         this.serverUri = serverUri;
-        this.connectionState = new ConnectionStateManager();
-        this.heartbeatManager = new HeartbeatManager(scheduler, serverUri, this::handleConnectionLoss);
-        this.reconnectionManager = new ReconnectionManager(scheduler, serverUri, this::performReconnect);
-        this.messageHandler = new WebSocketMessageHandler(serverUri, this::processMessage);
-        this.messageSender = new WebSocketMessageSender(serverUri, this::handleConnectionLoss);
+        this.session = session;
+        this.messageSizeLimit = messageSizeLimit;
+        this.connectionState = connectionState;
+        this.reconnectionManager = reconnectionManager;
+        this.messageHandler = messageHandler;
+        this.messageSender = messageSender;
+        this.objectMapper = objectMapper;
     }
 
     public void connect() {
@@ -55,23 +57,20 @@ public abstract class BaseWebSocketSessionClient implements WebSocketHandler {
             webSocketClient.execute(this, null, serverUri).get();
         } catch (Exception e) {
             log.error("Failed to connect to {}", serverUri, e);
-            reconnectionManager.scheduleReconnect();
+            reconnectionManager.scheduleReconnect(this::reconnectCallback, serverUri);
         }
     }
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
         this.session = session;
-        this.session.setTextMessageSizeLimit(MAX_BUFFER_SIZE);
+        this.session.setTextMessageSizeLimit(messageSizeLimit);
         connectionState.setConnected(true);
         reconnectionManager.resetAttempts();
         reconnectionManager.cancelReconnect();
 
         log.info("WebSocket connected to: {}", serverUri);
 
-        heartbeatManager.startHeartbeat(session);
-
-        // Perform connection-specific initialization
         try {
             onConnectionEstablished(session);
         } catch (Exception e) {
@@ -81,7 +80,8 @@ public abstract class BaseWebSocketSessionClient implements WebSocketHandler {
 
     @Override
     public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) {
-        messageHandler.handleMessage(message);
+        Consumer<String> consumer = this::processMessage;
+        messageHandler.handleMessage(message, consumer, serverUri);
     }
 
     @Override
@@ -101,37 +101,31 @@ public abstract class BaseWebSocketSessionClient implements WebSocketHandler {
         return false;
     }
 
+    // WebSocketMessageSender
     private void handleConnectionLoss() {
         connectionState.setConnected(false);
-        heartbeatManager.stopHeartbeat();
-
-        // Perform cleanup
-        try {
-            onConnectionLost();
-        } catch (Exception e) {
-            log.error("Error in connection lost callback", e);
-        }
 
         // Schedule reconnect if enabled
         if (connectionState.shouldReconnect()) {
-            reconnectionManager.scheduleReconnect();
+            reconnectionManager.scheduleReconnect(this::reconnectCallback, serverUri);
         }
     }
 
-    private void performReconnect() {
-        if (connectionState.shouldReconnect() && !connectionState.isConnected()) {
-            connect();
-        }
+    private Runnable reconnectCallback() {
+        return () -> {
+            if (connectionState.shouldReconnect() && !connectionState.isConnected()) {
+                connect();
+            }
+        };
     }
 
     protected void sendMessage(String message) {
-        messageSender.sendMessage(session, message);
+        messageSender.sendMessage(session, message, serverUri);
     }
 
     public void disconnect() {
         connectionState.setShouldReconnect(false);
         reconnectionManager.cancelReconnect();
-        heartbeatManager.stopHeartbeat();
 
         closeSession();
 
@@ -154,6 +148,6 @@ public abstract class BaseWebSocketSessionClient implements WebSocketHandler {
     }
 
     protected abstract void onConnectionEstablished(WebSocketSession session);
-    protected abstract void processMessage(String message) throws Exception;
-    protected abstract void onConnectionLost();
+
+    protected abstract void processMessage(String message);
 }

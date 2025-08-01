@@ -1,10 +1,12 @@
 package com.blockchain.blockpulseservice.wsclient;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
+@Component
 public class ConnectionStateManager {
     private final AtomicBoolean connected = new AtomicBoolean(false);
     private final AtomicBoolean shouldReconnect = new AtomicBoolean(true);

@@ -13,7 +13,7 @@ public class FeeSurgeService {
     private final TreeSet<Transaction> feeRatesMap = new TreeSet<>();
     private final Queue<Transaction> transactionQueue = new LinkedList<>();
 
-    public boolean processTransaction(Transaction newTx ) {
+    public void processTransaction(Transaction newTx ) {
         if (transactionQueue.size() >= WINDOW_SIZE_DEFAULT) {
             Transaction oldest = transactionQueue.poll();
             feeRatesMap.remove(oldest);
@@ -21,14 +21,14 @@ public class FeeSurgeService {
         transactionQueue.offer(newTx);
         feeRatesMap.add(newTx);
         if (feeRatesMap.size() < 10) {
-            return false;
+            return;
         }
 
-        return newTx.feeRate() > getCurrentPercentile90() * 1.2;
+        boolean isSurge = newTx.feeRate() > getCurrentPercentile99();
     }
 
-    public double getCurrentPercentile90() {
-        int index = (int) Math.ceil(0.9 * feeRatesMap.size()) - 1;
+    public double getCurrentPercentile99() {
+        int index = (int) Math.ceil(0.99 * feeRatesMap.size()) - 1;
         Transaction[] sortedArray = feeRatesMap.toArray(new Transaction[0]);
         return sortedArray[index].feeRate();
     }

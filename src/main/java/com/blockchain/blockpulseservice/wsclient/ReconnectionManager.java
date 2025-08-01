@@ -1,6 +1,9 @@
 package com.blockchain.blockpulseservice.wsclient;
 
+
+import com.blockchain.blockpulseservice.wsconfig.WebSocketReconnectionProperties;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 import java.net.URI;
 import java.util.concurrent.ScheduledExecutorService;
@@ -9,33 +12,32 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
+@Component
 public class ReconnectionManager {
-    private static final int MAX_RECONNECT_ATTEMPTS = 10;
-    private static final int INITIAL_RECONNECT_DELAY = 5;
-    private static final int MAX_RECONNECT_DELAY = 300; // 5 minutes
 
+    private final WebSocketReconnectionProperties reconnectionProperties;
     private final ScheduledExecutorService scheduler;
-    private final URI serverUri;
-    private final Runnable reconnectCallback;
     private final AtomicInteger reconnectAttempts = new AtomicInteger(0);
     private ScheduledFuture<?> reconnectTask;
 
-    public ReconnectionManager(ScheduledExecutorService scheduler, URI serverUri, Runnable reconnectCallback) {
+    public ReconnectionManager(ScheduledExecutorService scheduler,
+                               WebSocketReconnectionProperties reconnectionProperties) {
         this.scheduler = scheduler;
-        this.serverUri = serverUri;
-        this.reconnectCallback = reconnectCallback;
+        this.reconnectionProperties = reconnectionProperties;
     }
 
-    public void scheduleReconnect() {
+    public void scheduleReconnect(Runnable reconnectCallback, URI serverUri) {
         int attempts = reconnectAttempts.incrementAndGet();
 
-        if (attempts > MAX_RECONNECT_ATTEMPTS) {
-            log.error("Max reconnect attempts ({}) reached for {}. Giving up.", MAX_RECONNECT_ATTEMPTS, serverUri);
+        if (attempts > reconnectionProperties.maxAttempts()) {
+            log.error("Max reconnect attempts ({}) reached for {}. Giving up.", reconnectionProperties.maxAttempts(), serverUri);
             return;
         }
 
-        // Exponential backoff with jitter
-        int delay = Math.min(INITIAL_RECONNECT_DELAY * (int) Math.pow(2, attempts - 1), MAX_RECONNECT_DELAY);
+        int delay = Math.min(
+                reconnectionProperties.initialDelaySeconds() * (int) Math.pow(2, attempts - 1),
+                reconnectionProperties.maxDelaySeconds()
+        );
         delay += (int) (Math.random() * 5); // Add jitter
 
         log.info("Scheduling reconnect attempt {} for {} in {} seconds", attempts, serverUri, delay);
@@ -51,9 +53,5 @@ public class ReconnectionManager {
         if (reconnectTask != null && !reconnectTask.isDone()) {
             reconnectTask.cancel(false);
         }
-    }
-
-    public int getAttemptCount() {
-        return reconnectAttempts.get();
     }
 }
