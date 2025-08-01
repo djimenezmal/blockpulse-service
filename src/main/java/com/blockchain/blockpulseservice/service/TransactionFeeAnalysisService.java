@@ -1,13 +1,5 @@
 package com.blockchain.blockpulseservice.service;
 
-import com.blockchain.blockpulseservice.tx.TransactionData;
-import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
-
-import java.time.Instant;
-import java.util.*;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.stream.Collectors;
-
 /**
  * Service for analyzing Bitcoin transaction fees and detecting patterns/outliers
  */

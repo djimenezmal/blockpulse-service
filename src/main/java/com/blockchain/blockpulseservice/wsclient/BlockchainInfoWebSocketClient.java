@@ -1,7 +1,7 @@
 package com.blockchain.blockpulseservice.wsclient;
 
 import com.blockchain.blockpulseservice.tx.TransactionMapper;
-import com.blockchain.blockpulseservice.tx.TransactionWrapper;
+import com.blockchain.blockpulseservice.tx.TransactionDTOWrapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -28,9 +28,7 @@ public class BlockchainInfoWebSocketClient extends BaseWebSocketSessionClient {
     @Override
     protected void onConnectionEstablished(WebSocketSession session) {
         log.info("Connected to Blockchain.info WebSocket");
-        // Subscribe to unconfirmed transactions
         subscribeToUnconfirmedTransactions();
-        // Subscribe to new blocks (which contain confirmed transactions)
         //subscribeToNewBlocks();
     }
     
@@ -39,9 +37,9 @@ public class BlockchainInfoWebSocketClient extends BaseWebSocketSessionClient {
         log.debug("Processing message: {}", message.substring(0, Math.min(200, message.length())));
         
         try {
-            var transactionWrapper = objectMapper.readValue(message, TransactionWrapper.class);
-            var transaction = transactionMapper.mapToTransactionDTO(transactionWrapper.transactionData());
-            log.info("Mapped transaction: {}", transaction.toString());
+            var transactionWrapper = objectMapper.readValue(message, TransactionDTOWrapper.class);
+            var transactionDTO = transactionMapper.mapToTransactionDTO(transactionWrapper.transactionDTO());
+            log.debug("Mapped transaction: {}", transactionDTO.toString());
         } catch (Exception e) {
             log.error("Error processing blockchain.info message: {}", message, e);
         }

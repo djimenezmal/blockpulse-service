@@ -7,12 +7,12 @@ import java.util.function.ToLongFunction;
 
 @Component
 public class TransactionMapper {
-    public TransactionDTO mapToTransactionDTO(TransactionData txData) {
+    public Transaction mapToTransactionDTO(TransactionDTO txData) {
         var totalInput = sum(txData.inputs(), input -> input.prevOut().value());
         var totalOutput = sum(txData.outputs(), Output::value);
         var fee = totalInput - totalOutput;
 
-        return new TransactionDTO(fee, txData.size(), txData.hash());
+        return new Transaction(fee, txData.size(), txData.hash());
     }
 
     private <T> long sum(List<T> list, ToLongFunction<T> toLongFunction) {
