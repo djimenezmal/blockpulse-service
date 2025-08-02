@@ -31,7 +31,7 @@ app:
     reconnect:
       max-attempts: 10
       initial-delay-seconds: 5
-      max-delay-seconds: 300
+      max-delay-seconds: 30
     blockchain.info:
       ws:
         uri: wss://ws.blockchain.info/inv

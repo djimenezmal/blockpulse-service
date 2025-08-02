@@ -1,4 +1,4 @@
-package com.blockchain.blockpulseservice.wsconfig;
+package com.blockchain.blockpulseservice.wsconfig.client;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

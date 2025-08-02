@@ -10,21 +10,36 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.client.WebSocketClient;
 
 import java.net.URI;
-import java.util.concurrent.ScheduledExecutorService;
+
+import org.springframework.beans.factory.annotation.Value;
+
 
 @Slf4j
 @Component
 public class BlockchainInfoWebSocketClient extends BaseWebSocketSessionClient {
     private static final String BLOCKCHAIN_INFO_WS_URL = "wss://ws.blockchain.info/inv";
     private final TransactionMapper transactionMapper;
+    private final ObjectMapper objectMapper;
     private final FeeSurgeService feeSurgeService;
 
-    public BlockchainInfoWebSocketClient(WebSocketClient webSocketClient,
-                                         ScheduledExecutorService scheduler,
-                                         TransactionMapper transactionMapper,
-                                         FeeSurgeService feeSurgeService) {
-        super(webSocketClient, scheduler, URI.create(BLOCKCHAIN_INFO_WS_URL));
+    public BlockchainInfoWebSocketClient(TransactionMapper transactionMapper,
+                                         ObjectMapper objectMapper,
+                                         FeeSurgeService feeSurgeService,
+                                         WebSocketClient webSocketClient,
+                                         ConnectionStateManager connectionState,
+                                         ReconnectionManager reconnectionManager,
+                                         WebSocketMessageHandler messageHandler,
+                                         WebSocketMessageSender messageSender,
+                                         @Value("${app.websocket.message.size.limit}") int messageSizeLimit) {
+        super(URI.create(BLOCKCHAIN_INFO_WS_URL),
+                messageSizeLimit,
+                webSocketClient,
+                connectionState,
+                reconnectionManager,
+                messageHandler,
+                messageSender);
         this.transactionMapper = transactionMapper;
+        this.objectMapper = objectMapper;
         this.feeSurgeService = feeSurgeService;
     }
 
@@ -34,11 +49,11 @@ public class BlockchainInfoWebSocketClient extends BaseWebSocketSessionClient {
         subscribeToUnconfirmedTransactions();
         //subscribeToNewBlocks();
     }
-    
+
     @Override
     protected void processMessage(String message) {
         log.debug("Processing message: {}", message.substring(0, Math.min(200, message.length())));
-        
+
         try {
             var transactionWrapper = objectMapper.readValue(message, TransactionDTOWrapper.class);
             var transactionDTO = transactionMapper.mapToTransactionDTO(transactionWrapper.transactionDTO());
@@ -47,13 +62,13 @@ public class BlockchainInfoWebSocketClient extends BaseWebSocketSessionClient {
             log.error("Error processing blockchain.info message: {}", message, e);
         }
     }
-    
+
     private void subscribeToUnconfirmedTransactions() {
         var subscribeMessage = "{\"op\":\"unconfirmed_sub\"}";
         sendMessage(subscribeMessage);
         log.info("Subscribed to unconfirmed transactions");
     }
-    
+
 //    private void subscribeToNewBlocks() {
 //        String subscribeMessage = "{\"op\":\"blocks_sub\"}";
 //        sendMessage(subscribeMessage);
