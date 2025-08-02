@@ -1,4 +1,4 @@
-package com.blockchain.blockpulseservice.wsconfig.server;
+package com.blockchain.blockpulseservice.config.ws.server;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;

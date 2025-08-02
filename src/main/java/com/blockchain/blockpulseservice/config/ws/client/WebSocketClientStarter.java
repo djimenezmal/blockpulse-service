@@ -1,4 +1,4 @@
-package com.blockchain.blockpulseservice.wsconfig.client;
+package com.blockchain.blockpulseservice.config.ws.client;
 
 import com.blockchain.blockpulseservice.wsclient.BlockchainInfoWebSocketClient;
 import jakarta.annotation.PreDestroy;

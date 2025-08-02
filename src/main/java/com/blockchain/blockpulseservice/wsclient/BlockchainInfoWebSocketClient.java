@@ -17,7 +17,6 @@ import org.springframework.beans.factory.annotation.Value;
 @Slf4j
 @Component
 public class BlockchainInfoWebSocketClient extends BaseWebSocketSessionClient {
-    private static final String BLOCKCHAIN_INFO_WS_URL = "wss://ws.blockchain.info/inv";
     private final TransactionMapper transactionMapper;
     private final ObjectMapper objectMapper;
     private final FeeSurgeService feeSurgeService;
@@ -30,8 +29,9 @@ public class BlockchainInfoWebSocketClient extends BaseWebSocketSessionClient {
                                          ReconnectionManager reconnectionManager,
                                          WebSocketMessageHandler messageHandler,
                                          WebSocketMessageSender messageSender,
-                                         @Value("${app.websocket.message.size.limit}") int messageSizeLimit) {
-        super(URI.create(BLOCKCHAIN_INFO_WS_URL),
+                                         @Value("${app.websocket.blockchain.info.ws.uri}") String serverUri,
+                                         @Value("${app.websocket.message-size-limit}") int messageSizeLimit) {
+        super(URI.create(serverUri),
                 messageSizeLimit,
                 webSocketClient,
                 connectionState,
@@ -55,9 +55,10 @@ public class BlockchainInfoWebSocketClient extends BaseWebSocketSessionClient {
         log.debug("Processing message: {}", message.substring(0, Math.min(200, message.length())));
 
         try {
-            var transactionWrapper = objectMapper.readValue(message, TransactionDTOWrapper.class);
-            var transactionDTO = transactionMapper.mapToTransactionDTO(transactionWrapper.transactionDTO());
-            log.debug("Mapped transaction: {}", transactionDTO.toString());
+            var txWrapper = objectMapper.readValue(message, TransactionDTOWrapper.class);
+            var tx = transactionMapper.mapToTransaction(txWrapper.transactionDTO());
+            log.info("Mapped transaction: {}", tx.toString());
+            feeSurgeService.processTransaction(tx);
         } catch (Exception e) {
             log.error("Error processing blockchain.info message: {}", message, e);
         }

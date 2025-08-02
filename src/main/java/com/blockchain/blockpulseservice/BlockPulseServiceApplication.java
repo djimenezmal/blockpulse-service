@@ -1,6 +1,6 @@
 package com.blockchain.blockpulseservice;
 
-import com.blockchain.blockpulseservice.wsconfig.client.WebSocketReconnectionProperties;
+import com.blockchain.blockpulseservice.config.ws.client.WebSocketReconnectionProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;

@@ -2,7 +2,7 @@ package com.blockchain.blockpulseservice.tx;
 
 import java.util.Objects;
 
-public record Transaction(long feeRate, int size, String hash) implements Comparable<Transaction> {
+public record Transaction(String hash, long feeRate, int size, long time) implements Comparable<Transaction> {
     @Override
     public int compareTo(Transaction other) {
         int cmp = Double.compare(this.feeRate, other.feeRate);

@@ -11,8 +11,8 @@ server:
 
 logging:
   level:
-    com.blockchain.blockpulseservice: DEBUG
-    org.springframework.web.socket: DEBUG
+    com.blockchain.blockpulseservice: INFO
+    org.springframework.web.socket: INFO
 
 management:
   endpoints:
@@ -24,6 +24,10 @@ management:
       show-details: always
 
 app:
+  rest:
+    mempool.space:
+      fee-api-url: https://mempool.space/api/v1/fees/recommended
+      mempool-info-api-url: https://mempool.space/api/mempool
   websocket:
     message-size-limit: 4096
     reconnect-delay: 5000
@@ -35,3 +39,7 @@ app:
     blockchain.info:
       ws:
         uri: wss://ws.blockchain.info/inv
+  analysis:
+    tx:
+      outliers-percentile-threshold: 99
+      mempool-congestion-vbytes-threshold: 100
