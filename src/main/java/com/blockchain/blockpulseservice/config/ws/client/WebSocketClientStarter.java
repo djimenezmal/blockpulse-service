@@ -1,6 +1,6 @@
 package com.blockchain.blockpulseservice.config.ws.client;
 
-import com.blockchain.blockpulseservice.client.ws.BlockchainInfoWebSocketClient;
+import com.blockchain.blockpulseservice.client.ws.MempoolSpaceWebSocketClient;
 import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class WebSocketClientStarter {
     
-    private final BlockchainInfoWebSocketClient btcClient;
+    private final MempoolSpaceWebSocketClient btcClient;
 
     @EventListener(ApplicationReadyEvent.class)
     public void startWebSocketConnections() {

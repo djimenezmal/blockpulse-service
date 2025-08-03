@@ -83,7 +83,7 @@ Connect to `ws://localhost:8080/ws` and subscribe to:
 1. **Clone and Build**
 ```bash
 git clone <repository-url>
-cd fee-market-comparator
+cd totalFee-market-comparator
 ./mvnw clean package
 ```
 
@@ -106,8 +106,8 @@ docker-compose up --build
 
 2. **Or Build Docker Image Manually**
 ```bash
-docker build -t fee-market-comparator .
-docker run -p 8080:8080 fee-market-comparator
+docker build -t totalFee-market-comparator .
+docker run -p 8080:8080 totalFee-market-comparator
 ```
 
 ## Configuration

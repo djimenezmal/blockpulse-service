@@ -2,10 +2,10 @@ package com.blockchain.blockpulseservice.model;
 
 import java.util.Objects;
 
-public record Transaction(String hash, long feeRate, int size, long time) implements Comparable<Transaction> {
+public record Transaction(String hash, double feePerVSize, double totalFee, int size, long time) implements Comparable<Transaction> {
     @Override
     public int compareTo(Transaction other) {
-        int cmp = Double.compare(this.feeRate, other.feeRate);
+        int cmp = Double.compare(this.feePerVSize, other.feePerVSize);
         return cmp == 0 ? this.hash.compareTo(other.hash()) : cmp;
     }
 

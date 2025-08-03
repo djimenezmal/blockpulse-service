@@ -9,7 +9,7 @@ public class TransactionFeeAnalysisService {
     private static final int ROLLING_WINDOW_SIZE = 1000; // Number of transactions to keep in memory
     private static final double OUTLIER_THRESHOLD = 2.5; // Standard deviations for outlier detection
     private static final int MIN_TRANSACTIONS_FOR_ANALYSIS = 50;
-    private static final double HIGH_FEE_MULTIPLIER = 3.0; // 3x median = high fee
+    private static final double HIGH_FEE_MULTIPLIER = 3.0; // 3x median = high totalFee
     private static final double SPAM_FEE_THRESHOLD = 1.0; // Very low fees might indicate spam
 
     // Rolling window of transactions
@@ -86,7 +86,7 @@ public class TransactionFeeAnalysisService {
         // IQR based outlier detection
         if (feePerByte > currentStats.q3 + 1.5 * currentStats.iqr) {
             result.addInsight(
-                    String.format("High fee outlier: %.2f sat/byte (>Q3+1.5*IQR: %.2f)",
+                    String.format("High totalFee outlier: %.2f sat/byte (>Q3+1.5*IQR: %.2f)",
                             feePerByte, currentStats.q3 + 1.5 * currentStats.iqr),
                     Insight.InsightType.OUTLIER
             );
@@ -96,19 +96,19 @@ public class TransactionFeeAnalysisService {
     private void detectSpamTransactions(TransactionData transaction, AnalysisResult result) {
         double feePerByte = transaction.getFeePerByte();
 
-        // Very low fee compared to median
+        // Very low totalFee compared to median
         if (feePerByte < currentStats.median * 0.1 && feePerByte < SPAM_FEE_THRESHOLD) {
             result.addInsight(
-                    String.format("Potential spam TX: Very low fee %.4f sat/byte (median: %.2f)",
+                    String.format("Potential spam TX: Very low totalFee %.4f sat/byte (median: %.2f)",
                             feePerByte, currentStats.median),
                     Insight.InsightType.SPAM
             );
         }
 
-        // Large transaction with low fee (potential spam pattern)
+        // Large transaction with low totalFee (potential spam pattern)
         if (transaction.size() > 1000 && feePerByte < currentStats.percentile10) {
             result.addInsight(
-                    String.format("Large low-fee TX: %d bytes, %.4f sat/byte",
+                    String.format("Large low-totalFee TX: %d bytes, %.4f sat/byte",
                             transaction.size(), feePerByte),
                     Insight.InsightType.SPAM
             );
@@ -149,7 +149,7 @@ public class TransactionFeeAnalysisService {
 //        List<BlockData> blocks = new ArrayList<>(blockWindow);
 //        BlockData latestBlock = blocks.get(blocks.size() - 1);
 //
-//        // Detect fee wars (consecutive blocks with increasing median fees)
+//        // Detect totalFee wars (consecutive blocks with increasing median fees)
 //        detectFeeWars(blocks);
 //
 //        // Detect full blocks with low fees (potential spam or unusual patterns)
@@ -185,7 +185,7 @@ public class TransactionFeeAnalysisService {
 //        if (isFullBlock && hasLowFees) {
 //            System.out.println("⚠️ ANOMALY: Full block with low fees - Block: " +
 //                    block.height() + ", Size: " + block.size() +
-//                    ", Median fee: " + block.medianFeePerByte() + " sat/byte");
+//                    ", Median totalFee: " + block.medianFeePerByte() + " sat/byte");
 //        }
 //    }
 
@@ -243,7 +243,7 @@ public class TransactionFeeAnalysisService {
 
         // Standard deviation
         double variance = sortedFees.stream()
-                .mapToDouble(fee -> Math.pow(fee - stats.mean, 2))
+                .mapToDouble(totalFee -> Math.pow(totalFee - stats.mean, 2))
                 .average().orElse(0.0);
         stats.stdDev = Math.sqrt(variance);
 
