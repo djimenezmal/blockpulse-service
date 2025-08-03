@@ -1,4 +1,4 @@
-package com.blockchain.blockpulseservice.tx;
+package com.blockchain.blockpulseservice.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

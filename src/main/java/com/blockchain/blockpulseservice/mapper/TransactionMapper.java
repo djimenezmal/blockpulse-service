@@ -1,5 +1,8 @@
-package com.blockchain.blockpulseservice.tx;
+package com.blockchain.blockpulseservice.mapper;
 
+import com.blockchain.blockpulseservice.dto.TransactionDTO;
+import com.blockchain.blockpulseservice.model.Output;
+import com.blockchain.blockpulseservice.model.Transaction;
 import org.springframework.stereotype.Component;
 
 import java.util.List;

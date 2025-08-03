@@ -1,4 +1,4 @@
-package com.blockchain.blockpulseservice.config.ws.server;
+package com.blockchain.blockpulseservice.config.ws.service;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
@@ -8,7 +8,7 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 
 @Configuration
 @EnableWebSocketMessageBroker
-public class WebSocketServerConfig implements WebSocketMessageBrokerConfigurer {
+public class WebSocketServiceConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {

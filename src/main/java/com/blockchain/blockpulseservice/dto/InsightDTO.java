@@ -1,7 +1,7 @@
-package com.blockchain.blockpulseservice.service;
+package com.blockchain.blockpulseservice.dto;
 
-public record Insight(String message, InsightType type,
-                      long timestamp) {
+public record InsightDTO(String message, InsightType type,
+                         long timestamp) {
 
     @Override
     public String toString() {

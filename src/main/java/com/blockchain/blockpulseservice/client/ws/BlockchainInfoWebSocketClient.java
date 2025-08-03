@@ -1,8 +1,10 @@
-package com.blockchain.blockpulseservice.wsclient;
+package com.blockchain.blockpulseservice.client.ws;
 
 import com.blockchain.blockpulseservice.service.FeeSurgeService;
-import com.blockchain.blockpulseservice.tx.TransactionMapper;
-import com.blockchain.blockpulseservice.tx.TransactionDTOWrapper;
+import com.blockchain.blockpulseservice.mapper.TransactionMapper;
+import com.blockchain.blockpulseservice.dto.TransactionDTOWrapper;
+import com.blockchain.blockpulseservice.client.ws.manager.ConnectionStateManager;
+import com.blockchain.blockpulseservice.client.ws.manager.ReconnectionManager;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

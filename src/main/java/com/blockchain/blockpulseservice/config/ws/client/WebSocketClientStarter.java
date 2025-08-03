@@ -1,6 +1,6 @@
 package com.blockchain.blockpulseservice.config.ws.client;
 
-import com.blockchain.blockpulseservice.wsclient.BlockchainInfoWebSocketClient;
+import com.blockchain.blockpulseservice.client.ws.BlockchainInfoWebSocketClient;
 import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

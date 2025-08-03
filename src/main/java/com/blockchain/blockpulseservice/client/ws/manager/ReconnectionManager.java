@@ -1,4 +1,4 @@
-package com.blockchain.blockpulseservice.wsclient;
+package com.blockchain.blockpulseservice.client.ws.manager;
 
 
 import lombok.extern.slf4j.Slf4j;

@@ -1,7 +1,8 @@
-package com.blockchain.blockpulseservice.wsclient;
+package com.blockchain.blockpulseservice.client.ws;
 
+import com.blockchain.blockpulseservice.client.ws.manager.ConnectionStateManager;
+import com.blockchain.blockpulseservice.client.ws.manager.ReconnectionManager;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.WebSocketMessage;
