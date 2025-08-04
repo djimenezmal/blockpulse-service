@@ -4,7 +4,7 @@ import com.blockchain.blockpulseservice.client.ws.manager.ConnectionStateManager
 import com.blockchain.blockpulseservice.client.ws.manager.ReconnectionManager;
 import com.blockchain.blockpulseservice.dto.MempoolTransactionsDTOWrapper;
 import com.blockchain.blockpulseservice.mapper.TransactionMapper;
-import com.blockchain.blockpulseservice.service.TransactionAnalyzerService;
+import com.blockchain.blockpulseservice.service.SlidingWindowManager;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,18 +20,18 @@ import java.net.URI;
 public class MempoolSpaceWebSocketClient extends BaseWebSocketSessionClient {
     private final TransactionMapper transactionMapper;
     private final ObjectMapper objectMapper;
-    private final TransactionAnalyzerService transactionAnalyzerService;
+    private final SlidingWindowManager slidingWindowManager;
 
     public MempoolSpaceWebSocketClient(TransactionMapper transactionMapper,
                                        ObjectMapper objectMapper,
-                                       TransactionAnalyzerService transactionAnalyzerService,
                                        WebSocketClient webSocketClient,
                                        ConnectionStateManager connectionState,
                                        ReconnectionManager reconnectionManager,
                                        WebSocketMessageHandler messageHandler,
                                        WebSocketMessageSender messageSender,
                                        @Value("${app.mempool.space.websocket.track-mempool-api-url}") String serverUri,
-                                       @Value("${app.websocket.message-size-limit}") int messageSizeLimit) {
+                                       @Value("${app.websocket.message-size-limit}") int messageSizeLimit,
+                                       SlidingWindowManager slidingWindowManager) {
         super(URI.create(serverUri),
                 messageSizeLimit,
                 webSocketClient,
@@ -41,7 +41,7 @@ public class MempoolSpaceWebSocketClient extends BaseWebSocketSessionClient {
                 messageSender);
         this.transactionMapper = transactionMapper;
         this.objectMapper = objectMapper;
-        this.transactionAnalyzerService = transactionAnalyzerService;
+        this.slidingWindowManager = slidingWindowManager;
     }
 
     @Override
@@ -57,9 +57,7 @@ public class MempoolSpaceWebSocketClient extends BaseWebSocketSessionClient {
         try {
             var txWrapper = objectMapper.readValue(message, MempoolTransactionsDTOWrapper.class);
             var txs = transactionMapper.mapToTransaction(txWrapper.mempoolTransactions().added());
-            log.info("Mapped {} transactions", txs.size());
-            transactionAnalyzerService.processTransaction(txs);
-            //log.info("Mapped transaction: {}", txs.toString());
+            slidingWindowManager.add(txs);
         } catch (Exception e) {
             log.error("Error processing blockchain.info message: {}", message, e);
         }

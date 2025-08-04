@@ -43,6 +43,7 @@ app:
 #        uri: wss://ws.blockchain.info/inv
   analysis:
     tx:
+      sliding-window-size: 1000
       local-cheap-percentile: 0.25
       local-normal-percentile: 0.75
       outliers-percentile-threshold: 0.99

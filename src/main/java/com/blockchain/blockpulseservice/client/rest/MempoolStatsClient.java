@@ -31,7 +31,7 @@ public class MempoolStatsClient {
         try {
             var feeDto = restTemplate.getForObject(feeApiUrl, RecommendedTransactionFeeDTO.class);
             var mempoolInfoDTO = restTemplate.getForObject(mempoolInfoUrl, MempoolInfoDTO.class);
-            var mempoolStats = new MempoolStats(feeDto.fastFee(), feeDto.mediumFee(), feeDto.slowFee(), mempoolInfoDTO.memPoolSize());
+            var mempoolStats = new MempoolStats(feeDto.fastestFee(), feeDto.halfHourFee(), feeDto.hourFee(), mempoolInfoDTO.memPoolSize());
             this.mempoolStats = mempoolStats;
             log.info("Updated mempool data: {}", mempoolStats);
         } catch (Exception e) {
