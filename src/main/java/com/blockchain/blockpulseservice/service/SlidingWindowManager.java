@@ -3,6 +3,7 @@ package com.blockchain.blockpulseservice.service;
 import com.blockchain.blockpulseservice.model.Transaction;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -13,15 +14,16 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+@Slf4j
 @Component
 public class SlidingWindowManager {
     private final TreeSet<Transaction> feeRatesMap = new TreeSet<>();
     private final BlockingQueue<Transaction> transactionQueue = new LinkedBlockingQueue<>();
+    private final int slidingWindowSize;
     private final TransactionAnalyzerService analyzerService;
     private final ThreadFactory analyzerThreadFactory;
-    private final int slidingWindowSize;
-    private volatile AtomicBoolean running = new AtomicBoolean(true);
     private Thread analyzerThread;
+    private final AtomicBoolean running = new AtomicBoolean(true);
 
     public SlidingWindowManager(@Value("${app.analysis.tx.sliding-window-size}") int slidingWindowSize,
                                 TransactionAnalyzerService analyzerService,
@@ -42,11 +44,12 @@ public class SlidingWindowManager {
                     Thread.currentThread().interrupt();
                     running.set(false);
                 }
-                if (tx == null) {
+                if (tx != null) {
                     analyzerService.processTransaction(tx, feeRatesMap);
                 }
             }
         });
+        log.info("Starting analyzer thread {}", analyzerThread.getName());
         analyzerThread.start();
     }
 
@@ -54,6 +57,7 @@ public class SlidingWindowManager {
     private void stopAnalyzerThread() {
         running.set(false);
         if (analyzerThread != null) {
+            log.info("Stopping analyzer thread {}", analyzerThread.getName());
             analyzerThread.interrupt();
             try {
                 analyzerThread.join(5000);
@@ -64,14 +68,29 @@ public class SlidingWindowManager {
     }
 
     public void add(List<Transaction> newTxs) {
+        log.debug("Adding transactions to sliding window: {}", newTxs.size());
         newTxs.forEach(tx -> {
-            if (transactionQueue.size() >= slidingWindowSize) {
-                var oldestTx = transactionQueue.poll();
-                feeRatesMap.remove(oldestTx);
-            }
-            if (transactionQueue.offer(tx)) {
-                feeRatesMap.add(tx);
+            if (!isValidTransaction(tx)) {
+                if (transactionQueue.size() >= slidingWindowSize) {
+                    var oldestTx = transactionQueue.poll();
+                    feeRatesMap.remove(oldestTx);
+                }
+                if (transactionQueue.offer(tx)) {
+                    feeRatesMap.add(tx);
+                }
             }
         });
+    }
+
+    private boolean isValidTransaction(Transaction tx) {
+        if (tx.feePerVSize() < 0) {
+            log.debug("Invalid fee rate: {}", tx.feePerVSize());
+            return false;
+        }
+        if (tx.size() <= 0) {
+            log.debug("Invalid transaction size: {}", tx.size());
+            return false;
+        }
+        return true;
     }
 }

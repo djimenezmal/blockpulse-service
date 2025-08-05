@@ -14,7 +14,7 @@ public class WebSocketMessageHandler {
     public void handleMessage(WebSocketMessage<?> message, Consumer<String> messageConsumer, URI serverUri) {
         if (message instanceof TextMessage textMessage) {
             var payload = textMessage.getPayload();
-            log.debug("Received message from {}: {}", serverUri, payload);
+            log.debug("Received message from {}: {}", serverUri, payload.substring(0, Math.min(200, payload.length())));
             messageConsumer.accept(payload);
         }
     }

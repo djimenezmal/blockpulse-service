@@ -1,4 +1,4 @@
-package com.blockchain.blockpulseservice.config;
+package com.blockchain.blockpulseservice.config.analysis;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
