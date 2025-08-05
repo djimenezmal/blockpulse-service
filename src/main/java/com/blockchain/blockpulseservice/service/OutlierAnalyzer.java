@@ -18,11 +18,9 @@ public class OutlierAnalyzer extends BaseTransactionAnalyzer {
     @Override
     protected AnalysisContext doAnalyze(AnalysisContext context) {
         double percentile = stats.getCurrentPercentile(outliersPercentileThreshold, context.getOrderedTransactions());
-
         if (context.getTransaction().feePerVSize() > percentile) {
             return context
                     .addInsight(InsightType.OUTLIER)
-                    .putMetric("outlier_percentile", percentile)
                     .build();
         }
         return context;
