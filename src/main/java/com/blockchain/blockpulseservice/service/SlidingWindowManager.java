@@ -22,18 +22,18 @@ public class SlidingWindowManager {
     private final int slidingWindowSize;
     private final TransactionAnalyzerService analyzerService;
     private final ThreadFactory analyzerThreadFactory;
-    private final WindowSnapshotService windowSnapshotService;
+    private final TransactionWindowSnapshotService transactionWindowSnapshotService;
     private Thread analyzerThread;
     private final AtomicBoolean running = new AtomicBoolean(true);
 
     public SlidingWindowManager(@Value("${app.analysis.tx.sliding-window-size:1000}") int slidingWindowSize,
                                 TransactionAnalyzerService analyzerService,
                                 ThreadFactory analyzerThreadFactory,
-                                WindowSnapshotService windowSnapshotService) {
+                                TransactionWindowSnapshotService transactionWindowSnapshotService) {
         this.slidingWindowSize = slidingWindowSize;
         this.analyzerService = analyzerService;
         this.analyzerThreadFactory = analyzerThreadFactory;
-        this.windowSnapshotService = windowSnapshotService;
+        this.transactionWindowSnapshotService = transactionWindowSnapshotService;
     }
 
     @PostConstruct
@@ -50,7 +50,7 @@ public class SlidingWindowManager {
                     Thread.currentThread().interrupt();
                 }
                 if (tx != null) {
-                    var snapshot = windowSnapshotService.takeCurrentWindowSnapshot(orderedTransactionsPerFeeRate);
+                    var snapshot = transactionWindowSnapshotService.takeCurrentWindowSnapshot(orderedTransactionsPerFeeRate);
                     analyzerService.processTransaction(tx, snapshot);
                 }
             }

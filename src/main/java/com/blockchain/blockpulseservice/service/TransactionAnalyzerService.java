@@ -1,6 +1,6 @@
 package com.blockchain.blockpulseservice.service;
 
-import com.blockchain.blockpulseservice.client.rest.MempoolStatsClient;
+import com.blockchain.blockpulseservice.client.rest.MempoolStatsUpdater;
 import com.blockchain.blockpulseservice.model.AnalyzedTransaction;
 import com.blockchain.blockpulseservice.model.Transaction;
 import com.blockchain.blockpulseservice.service.analysis.AnalysisContext;
@@ -17,15 +17,15 @@ import java.util.ArrayList;
 public class TransactionAnalyzerService {
     private final TransactionAnalyzer analysisChain;
     private final NotificationService notificationService;
-    private final MempoolStatsClient mempoolStatsClient;
+    private final MempoolStatsUpdater mempoolStatsUpdater;
 
-    public void processTransaction(Transaction newTx, WindowSnapshot windowSnapshot) {
+    public void processTransaction(Transaction newTx, TransactionWindowSnapshot transactionWindowSnapshot) {
         log.debug("Processing transaction: {}", newTx.hash());
         try {
             var context = AnalysisContext.builder()
                     .transaction(newTx)
-                    .sortedTransactionsPerFeeRate(orderedTxsByFee.toArray(new Transaction[0]))
-                    .mempoolStats(mempoolStatsClient.getMempoolStats())
+                    .transactionWindowSnapshot(transactionWindowSnapshot)
+                    .mempoolStats(mempoolStatsUpdater.getMempoolStats())
                     .build();
 
             var result = analysisChain.analyze(context);

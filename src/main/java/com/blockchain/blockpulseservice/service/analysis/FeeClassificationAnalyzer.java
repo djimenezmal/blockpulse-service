@@ -1,8 +1,6 @@
 package com.blockchain.blockpulseservice.service.analysis;
 
 import com.blockchain.blockpulseservice.model.FeeClassification;
-import com.blockchain.blockpulseservice.utils.MathUtils;
-import org.apache.commons.math3.stat.descriptive.rank.Percentile;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -45,9 +43,8 @@ public class FeeClassificationAnalyzer extends BaseTransactionAnalyzer {
             }
         } else {
             // Normal network → use local percentiles
-            Percentile percentile = new Percentile();
-            double localCheapPercentile = MathUtils.getCurrentPercentile(localCheapPercentileThreshold, context.getSortedTransactionsPerFeeRate());
-            double localNormalPercentile = MathUtils.getCurrentPercentile(localNormalPercentileThreshold, context.getSortedTransactionsPerFeeRate());
+            double localCheapPercentile = context.getTransactionWindowSnapshot().getPercentileFeeRate(localCheapPercentileThreshold);
+            double localNormalPercentile = context.getTransactionWindowSnapshot().getPercentileFeeRate(localNormalPercentileThreshold);
 
             if (feePerVSize < localCheapPercentile) {
                 return FeeClassification.CHEAP;

@@ -1,16 +1,20 @@
 package com.blockchain.blockpulseservice.service;
 
 import com.blockchain.blockpulseservice.model.Transaction;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.TreeSet;
 
+@Slf4j
 @Service
-class WindowSnapshotService {
-    public WindowSnapshot takeCurrentWindowSnapshot(TreeSet<Transaction> orderedTransactionsPerFeeRate) {
+class TransactionWindowSnapshotService {
+    public TransactionWindowSnapshot takeCurrentWindowSnapshot(TreeSet<Transaction> orderedTransactionsPerFeeRate) {
+        log.debug("Taking current window snapshot...");
         if (orderedTransactionsPerFeeRate.isEmpty()) {
-            return WindowSnapshot.empty();
+            return TransactionWindowSnapshot.empty();
         }
 
         int totalTransactions = orderedTransactionsPerFeeRate.size();
@@ -22,7 +26,7 @@ class WindowSnapshotService {
         }
         double averageFeeRate = sum/totalTransactions;
 
-        return new WindowSnapshot(
+        return new TransactionWindowSnapshot(
                 totalTransactions,
                 averageFeeRate,
                 getMedianFeeRate(transactions),
@@ -30,7 +34,7 @@ class WindowSnapshotService {
         );
     }
 
-    public double getMedianFeeRate(ArrayList<Transaction> transactions) {
+    public double getMedianFeeRate(List<Transaction> transactions) {
         int size = transactions.size();
         if (size % 2 == 0) {
             return (transactions.get(size / 2 - 1).feePerVSize() +
