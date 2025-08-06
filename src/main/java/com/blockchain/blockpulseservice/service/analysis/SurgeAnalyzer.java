@@ -1,4 +1,4 @@
-package com.blockchain.blockpulseservice.service;
+package com.blockchain.blockpulseservice.service.analysis;
 
 import com.blockchain.blockpulseservice.model.InsightType;
 import lombok.extern.slf4j.Slf4j;

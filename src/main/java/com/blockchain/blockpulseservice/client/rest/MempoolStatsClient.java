@@ -9,6 +9,13 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
+import static java.util.concurrent.CompletableFuture.*;
+
 @Slf4j
 @Service
 public class MempoolStatsClient {
@@ -28,15 +35,47 @@ public class MempoolStatsClient {
     @Scheduled(fixedRate = 10000) // Every 10 seconds
     public void updateMempoolStats() {
         log.info("Updating mempool data...");
-        try {
-            var feeDto = restTemplate.getForObject(feeApiUrl, RecommendedTransactionFeeDTO.class);
-            var mempoolInfoDTO = restTemplate.getForObject(mempoolInfoUrl, MempoolInfoDTO.class);
-            var mempoolStats = new MempoolStats(feeDto.fastestFee(), feeDto.halfHourFee(), feeDto.hourFee(), mempoolInfoDTO.memPoolSize());
-            this.mempoolStats = mempoolStats;
-            log.info("Updated mempool data: {}", mempoolStats);
+        try (var executorService = Executors.newSingleThreadExecutor()) {
+
+            CompletableFuture<RecommendedTransactionFeeDTO> feeFuture = CompletableFuture
+                    .supplyAsync(() -> restTemplate.getForObject(feeApiUrl, RecommendedTransactionFeeDTO.class), executorService)
+                    .orTimeout(2, TimeUnit.SECONDS)
+                    .exceptionally(ex -> {
+                        log.error("Failed to fetch fee data: {}", ex.getMessage());
+                        return null;
+                    });
+
+            CompletableFuture<MempoolInfoDTO> mempoolFuture = CompletableFuture
+                    .supplyAsync(() -> restTemplate.getForObject(mempoolInfoUrl, MempoolInfoDTO.class), executorService)
+                    .orTimeout(2, TimeUnit.SECONDS)
+                    .exceptionally(ex -> {
+                        log.error("Failed to fetch mempool info: {}", ex.getMessage());
+                        return null;
+                    });
+
+            CompletableFuture<Void> all = CompletableFuture.allOf(feeFuture, mempoolFuture);
+
+            all.join(); // Wait for both tasks to finish
+
+            var feeDto = feeFuture.getNow(null);
+            var mempoolInfoDTO = mempoolFuture.getNow(null);
+
+            if (feeDto != null && mempoolInfoDTO != null) {
+                var mempoolStats = mapToMempoolInfo(feeDto, mempoolInfoDTO);
+                this.mempoolStats = mempoolStats;
+                log.info("Updated mempool data: {}", mempoolStats);
+            } else {
+                log.warn("One or both API calls returned null. Skipping mempool stats update.");
+            }
+
         } catch (Exception e) {
-            log.error("Failed to fetch mempool data: {}", e.getMessage());
+            log.error("Unexpected error while fetching mempool data", e);
         }
+
+    }
+
+    private MempoolStats mapToMempoolInfo() {
+        return new MempoolStats(feeDto.fastestFee(), feeDto.halfHourFee(), feeDto.hourFee(), mempoolInfoDTO.memPoolSize());
     }
 
     public MempoolStats getMempoolStats() {

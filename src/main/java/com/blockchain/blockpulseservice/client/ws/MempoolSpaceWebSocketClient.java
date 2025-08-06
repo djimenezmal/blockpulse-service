@@ -52,12 +52,12 @@ public class MempoolSpaceWebSocketClient extends BaseWebSocketSessionClient {
 
     @Override
     protected void processMessage(String message) {
-        log.debug("Processing message: {}", message.substring(0, Math.min(200, message.length())));
+        log.info("Processing message: {}", message.substring(0, Math.min(200, message.length())));
 
         try {
             var txWrapper = objectMapper.readValue(message, MempoolTransactionsDTOWrapper.class);
             var txs = transactionMapper.mapToTransaction(txWrapper.mempoolTransactions().added());
-            slidingWindowManager.add(txs);
+            slidingWindowManager.addTransaction(txs);
         } catch (Exception e) {
             log.error("Error processing blockchain.info message: {}", message, e);
         }

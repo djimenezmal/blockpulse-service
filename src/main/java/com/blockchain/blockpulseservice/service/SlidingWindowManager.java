@@ -17,39 +17,44 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Slf4j
 @Component
 public class SlidingWindowManager {
-    private final TreeSet<Transaction> feeRatesMap = new TreeSet<>();
+    private final TreeSet<Transaction> orderedTransactionsPerFeeRate = new TreeSet<>();
     private final BlockingQueue<Transaction> transactionQueue = new LinkedBlockingQueue<>();
     private final int slidingWindowSize;
     private final TransactionAnalyzerService analyzerService;
     private final ThreadFactory analyzerThreadFactory;
+    private final WindowSnapshotService windowSnapshotService;
     private Thread analyzerThread;
     private final AtomicBoolean running = new AtomicBoolean(true);
 
-    public SlidingWindowManager(@Value("${app.analysis.tx.sliding-window-size}") int slidingWindowSize,
+    public SlidingWindowManager(@Value("${app.analysis.tx.sliding-window-size:1000}") int slidingWindowSize,
                                 TransactionAnalyzerService analyzerService,
-                                ThreadFactory analyzerThreadFactory) {
+                                ThreadFactory analyzerThreadFactory,
+                                WindowSnapshotService windowSnapshotService) {
         this.slidingWindowSize = slidingWindowSize;
         this.analyzerService = analyzerService;
         this.analyzerThreadFactory = analyzerThreadFactory;
+        this.windowSnapshotService = windowSnapshotService;
     }
 
     @PostConstruct
     private void startAnalyzerThread() {
         analyzerThread = analyzerThreadFactory.newThread(() -> {
+            log.info("Started analyzer thread {}", analyzerThread.getName());
             while (running.get() && !Thread.currentThread().isInterrupted()) {
                 Transaction tx = null;
                 try {
                     tx = transactionQueue.take();
                 } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
+                    log.warn("Thread interrupted while waiting for transaction", e);
                     running.set(false);
+                    Thread.currentThread().interrupt();
                 }
                 if (tx != null) {
-                    analyzerService.processTransaction(tx, feeRatesMap);
+                    var snapshot = windowSnapshotService.takeCurrentWindowSnapshot(orderedTransactionsPerFeeRate);
+                    analyzerService.processTransaction(tx, snapshot);
                 }
             }
         });
-        log.info("Starting analyzer thread {}", analyzerThread.getName());
         analyzerThread.start();
     }
 
@@ -62,21 +67,23 @@ public class SlidingWindowManager {
             try {
                 analyzerThread.join(5000);
             } catch (InterruptedException e) {
+                log.error("Error stopping analyzer thread {}", analyzerThread.getName(), e);
                 Thread.currentThread().interrupt();
             }
         }
     }
 
-    public void add(List<Transaction> newTxs) {
-        log.debug("Adding transactions to sliding window: {}", newTxs.size());
+    public void addTransaction(List<Transaction> newTxs) {
         newTxs.forEach(tx -> {
-            if (!isValidTransaction(tx)) {
+            if (isValidTransaction(tx)) {
                 if (transactionQueue.size() >= slidingWindowSize) {
+                    log.debug("Sliding window is full, removing oldest transaction: {}", orderedTransactionsPerFeeRate.first().hash());
                     var oldestTx = transactionQueue.poll();
-                    feeRatesMap.remove(oldestTx);
+                    orderedTransactionsPerFeeRate.remove(oldestTx);
                 }
                 if (transactionQueue.offer(tx)) {
-                    feeRatesMap.add(tx);
+                    log.debug("Added transaction to sliding window: {}", tx.hash());
+                    orderedTransactionsPerFeeRate.add(tx);
                 }
             }
         });
@@ -84,11 +91,11 @@ public class SlidingWindowManager {
 
     private boolean isValidTransaction(Transaction tx) {
         if (tx.feePerVSize() < 0) {
-            log.debug("Invalid fee rate: {}", tx.feePerVSize());
+            log.warn("Invalid fee rate: {}", tx.feePerVSize());
             return false;
         }
         if (tx.size() <= 0) {
-            log.debug("Invalid transaction size: {}", tx.size());
+            log.warn("Invalid transaction size: {}", tx.size());
             return false;
         }
         return true;

@@ -1,4 +1,4 @@
-package com.blockchain.blockpulseservice.service;
+package com.blockchain.blockpulseservice.service.analysis;
 
 public interface TransactionAnalyzer {
     AnalysisContext analyze(AnalysisContext context);

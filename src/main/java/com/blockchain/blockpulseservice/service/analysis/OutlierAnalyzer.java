@@ -1,23 +1,21 @@
-package com.blockchain.blockpulseservice.service;
+package com.blockchain.blockpulseservice.service.analysis;
 
 import com.blockchain.blockpulseservice.model.InsightType;
+import com.blockchain.blockpulseservice.utils.MathUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 public class OutlierAnalyzer extends BaseTransactionAnalyzer {
-    private final TransactionStatistics stats;
     private final double outliersPercentileThreshold;
 
-    public OutlierAnalyzer(TransactionStatistics stats,
-                           @Value("${app.analysis.tx.outliers-percentile-threshold}") double outliersPercentileThreshold) {
-        this.stats = stats;
+    public OutlierAnalyzer(@Value("${app.analysis.tx.outliers-percentile-threshold:0.99}") double outliersPercentileThreshold) {
         this.outliersPercentileThreshold = outliersPercentileThreshold;
     }
 
     @Override
     protected AnalysisContext doAnalyze(AnalysisContext context) {
-        double percentile = stats.getCurrentPercentile(outliersPercentileThreshold, context.getOrderedTransactions());
+        double percentile = MathUtils.getCurrentPercentile(outliersPercentileThreshold, context.getSortedTransactionsPerFeeRate());
         if (context.getTransaction().feePerVSize() > percentile) {
             return context
                     .addInsight(InsightType.OUTLIER)
