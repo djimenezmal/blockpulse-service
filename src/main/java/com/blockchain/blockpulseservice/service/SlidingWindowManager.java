@@ -73,19 +73,19 @@ public class SlidingWindowManager {
         }
     }
 
-    public void addTransaction(List<Transaction> newTxs) {
-        newTxs.forEach(tx -> {
-            if (isValidTransaction(tx)) {
+    public void addTransaction(List<Transaction> transactions) {
+        transactions.forEach(newTx -> {
+            if (isValidTransaction(newTx)) {
                 if (transactionQueue.size() >= slidingWindowSize) {
                     log.debug("Sliding window is full, removing oldest transaction: {}", transactionsPerFeeRate.getFirst().hash());
                     var oldestTx = transactionQueue.poll();
                     transactionsPerFeeRate.remove(oldestTx);
-                    transactionWindowSnapshotService.subtractFee(tx.feePerVSize());
+                    transactionWindowSnapshotService.subtractFee(oldestTx.feePerVSize());
                 }
-                if (transactionQueue.offer(tx)) {
-                    log.debug("Added transaction to sliding window: {}", tx.hash());
-                    transactionsPerFeeRate.add(tx);
-                    transactionWindowSnapshotService.addFee(tx.feePerVSize());
+                if (transactionQueue.offer(newTx)) {
+                    log.debug("Added transaction to sliding window: {}", newTx.hash());
+                    transactionsPerFeeRate.add(newTx);
+                    transactionWindowSnapshotService.addFee(newTx.feePerVSize());
                 }
             }
         });
