@@ -10,10 +10,13 @@ import java.util.List;
 @Slf4j
 @Service
 class TransactionWindowSnapshotService {
+    private final TransactionsPercentile percentile;
     private final double outliersPercentileThreshold;
     private double sum = 0;
 
-    public TransactionWindowSnapshotService(@Value("${app.analysis.tx.outliers-percentile-threshold:0.99}") double outliersPercentileThreshold) {
+    public TransactionWindowSnapshotService(TransactionsPercentile percentile,
+                                            @Value("${app.analysis.tx.outliers-percentile-threshold:0.99}") double outliersPercentileThreshold) {
+        this.percentile = percentile;
         this.outliersPercentileThreshold = outliersPercentileThreshold;
     }
 
@@ -39,6 +42,7 @@ class TransactionWindowSnapshotService {
                 averageFeeRate,
                 getMedianFeeRate(transactionsPerFeeRate),
                 getNumOfOutliers(transactionsPerFeeRate),
+                percentile.getPercentileFeeRate(outliersPercentileThreshold, transactionsPerFeeRate),
                 transactionsPerFeeRate
         );
     }
@@ -51,13 +55,8 @@ class TransactionWindowSnapshotService {
             return transactionsPerFeeRate.get(size / 2).feePerVSize();
         }
     }
-
-    public int getNumOfOutliers(List<Transaction> transactionsPerFeeRate) {
-        int totalTransactions = transactionsPerFeeRate.size();
-        return totalTransactions - getPercentileIndex(totalTransactions);
-    }
-
-    private int getPercentileIndex(int totalTransactions) {
-        return (int) Math.ceil(outliersPercentileThreshold * totalTransactions) - 1;
+    public int getNumOfOutliers(List<Transaction> transactions) {
+        int totalTransactions = transactions.size();
+        return totalTransactions - percentile.getPercentileIndex(outliersPercentileThreshold, totalTransactions);
     }
 }

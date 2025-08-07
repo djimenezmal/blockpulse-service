@@ -52,9 +52,10 @@ public class TransactionAnalyzerService {
     }
 
     private TransactionWindowSnapshotDTO mapToTransactionWindowSnapshotDTO(TransactionWindowSnapshot windowSnapshot) {
-        return new TransactionWindowSnapshotDTO(windowSnapshot.getTotalTransactions(),
-                windowSnapshot.getAverageFeeRatePerVSize(),
-                windowSnapshot.getMedianFeeRatePerVSize()
-        );
+        return new TransactionWindowSnapshotDTO(
+                windowSnapshot.totalTransactions(),
+                windowSnapshot.averageFeeRatePerVSize(),
+                windowSnapshot.medianFeeRatePerVSize(),
+                windowSnapshot.numOfOutliers());
     }
 }
