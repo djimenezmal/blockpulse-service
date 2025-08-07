@@ -1,7 +1,8 @@
-package com.blockchain.blockpulseservice.service;
+package com.blockchain.blockpulseservice.service.sliding_window;
 
 import com.blockchain.blockpulseservice.model.Transaction;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -9,7 +10,12 @@ import java.util.List;
 @Slf4j
 @Service
 class TransactionWindowSnapshotService {
+    private final double outliersPercentileThreshold;
     private double sum = 0;
+
+    public TransactionWindowSnapshotService(@Value("${app.analysis.tx.outliers-percentile-threshold:0.99}") double outliersPercentileThreshold) {
+        this.outliersPercentileThreshold = outliersPercentileThreshold;
+    }
 
     public void addFee(double feePerVSize) {
         sum += feePerVSize;
@@ -32,6 +38,7 @@ class TransactionWindowSnapshotService {
                 totalTransactions,
                 averageFeeRate,
                 getMedianFeeRate(transactionsPerFeeRate),
+                getNumOfOutliers(transactionsPerFeeRate),
                 transactionsPerFeeRate
         );
     }
@@ -45,8 +52,12 @@ class TransactionWindowSnapshotService {
         }
     }
 
-    public double getPercentileFeeRate(double percentile, List<Transaction> transactionsPerFeeRate) {
-        int index = (int) Math.ceil(percentile / 100 * transactionsPerFeeRate.size()) - 1;
-        return transactionsPerFeeRate.get(Math.max(0, index)).feePerVSize();
+    public int getNumOfOutliers(List<Transaction> transactionsPerFeeRate) {
+        int totalTransactions = transactionsPerFeeRate.size();
+        return totalTransactions - getPercentileIndex(totalTransactions);
+    }
+
+    private int getPercentileIndex(int totalTransactions) {
+        return (int) Math.ceil(outliersPercentileThreshold * totalTransactions) - 1;
     }
 }

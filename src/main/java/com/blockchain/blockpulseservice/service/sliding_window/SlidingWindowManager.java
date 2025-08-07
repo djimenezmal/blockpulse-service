@@ -1,6 +1,7 @@
-package com.blockchain.blockpulseservice.service;
+package com.blockchain.blockpulseservice.service.sliding_window;
 
 import com.blockchain.blockpulseservice.model.Transaction;
+import com.blockchain.blockpulseservice.service.TransactionAnalyzerService;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
