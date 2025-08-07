@@ -4,43 +4,49 @@ import com.blockchain.blockpulseservice.model.Transaction;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.TreeSet;
 
 @Slf4j
 @Service
 class TransactionWindowSnapshotService {
-    public TransactionWindowSnapshot takeCurrentWindowSnapshot(TreeSet<Transaction> orderedTransactionsPerFeeRate) {
+    private double sum = 0;
+
+    public void addFee(double feePerVSize) {
+        sum += feePerVSize;
+    }
+
+    public void subtractFee(double feePerVSize) {
+        sum -= feePerVSize;
+    }
+
+    public TransactionWindowSnapshot takeCurrentWindowSnapshot(List<Transaction> transactionsPerFeeRate) {
         log.debug("Taking current window snapshot...");
-        if (orderedTransactionsPerFeeRate.isEmpty()) {
+        if (transactionsPerFeeRate.isEmpty()) {
+            log.debug("No transactions in window, returning empty snapshot");
             return TransactionWindowSnapshot.empty();
         }
 
-        int totalTransactions = orderedTransactionsPerFeeRate.size();
-        double sum = 0;
-        var transactions = new ArrayList<Transaction>();
-        for (Transaction transaction : orderedTransactionsPerFeeRate) {
-            sum += transaction.feePerVSize();
-            transactions.add(transaction);
-        }
-        double averageFeeRate = sum/totalTransactions;
-
+        int totalTransactions = transactionsPerFeeRate.size();
+        double averageFeeRate = sum / totalTransactions;
         return new TransactionWindowSnapshot(
                 totalTransactions,
                 averageFeeRate,
-                getMedianFeeRate(transactions),
-                transactions
+                getMedianFeeRate(transactionsPerFeeRate),
+                transactionsPerFeeRate
         );
     }
 
-    public double getMedianFeeRate(List<Transaction> transactions) {
-        int size = transactions.size();
+    private double getMedianFeeRate(List<Transaction> transactionsPerFeeRate) {
+        int size = transactionsPerFeeRate.size();
         if (size % 2 == 0) {
-            return (transactions.get(size / 2 - 1).feePerVSize() +
-                    transactions.get(size / 2).feePerVSize()) / 2.0;
+            return (transactionsPerFeeRate.get(size / 2 - 1).feePerVSize() + transactionsPerFeeRate.get(size / 2).feePerVSize()) / 2.0;
         } else {
-            return transactions.get(size / 2).feePerVSize();
+            return transactionsPerFeeRate.get(size / 2).feePerVSize();
         }
+    }
+
+    public double getPercentileFeeRate(double percentile, List<Transaction> transactionsPerFeeRate) {
+        int index = (int) Math.ceil(percentile / 100 * transactionsPerFeeRate.size()) - 1;
+        return transactionsPerFeeRate.get(Math.max(0, index)).feePerVSize();
     }
 }

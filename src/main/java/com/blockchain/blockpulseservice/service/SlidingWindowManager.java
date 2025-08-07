@@ -4,11 +4,11 @@ import com.blockchain.blockpulseservice.model.Transaction;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.list.TreeList;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.TreeSet;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Slf4j
 @Component
 public class SlidingWindowManager {
-    private final TreeSet<Transaction> orderedTransactionsPerFeeRate = new TreeSet<>();
+    private final TreeList<Transaction> transactionsPerFeeRate = new TreeList<>();
     private final BlockingQueue<Transaction> transactionQueue = new LinkedBlockingQueue<>();
     private final int slidingWindowSize;
     private final TransactionAnalyzerService analyzerService;
@@ -50,7 +50,7 @@ public class SlidingWindowManager {
                     Thread.currentThread().interrupt();
                 }
                 if (tx != null) {
-                    var snapshot = transactionWindowSnapshotService.takeCurrentWindowSnapshot(orderedTransactionsPerFeeRate);
+                    var snapshot = transactionWindowSnapshotService.takeCurrentWindowSnapshot(transactionsPerFeeRate);
                     analyzerService.processTransaction(tx, snapshot);
                 }
             }
@@ -77,13 +77,15 @@ public class SlidingWindowManager {
         newTxs.forEach(tx -> {
             if (isValidTransaction(tx)) {
                 if (transactionQueue.size() >= slidingWindowSize) {
-                    log.debug("Sliding window is full, removing oldest transaction: {}", orderedTransactionsPerFeeRate.first().hash());
+                    log.debug("Sliding window is full, removing oldest transaction: {}", transactionsPerFeeRate.getFirst().hash());
                     var oldestTx = transactionQueue.poll();
-                    orderedTransactionsPerFeeRate.remove(oldestTx);
+                    transactionsPerFeeRate.remove(oldestTx);
+                    transactionWindowSnapshotService.subtractFee(tx.feePerVSize());
                 }
                 if (transactionQueue.offer(tx)) {
                     log.debug("Added transaction to sliding window: {}", tx.hash());
-                    orderedTransactionsPerFeeRate.add(tx);
+                    transactionsPerFeeRate.add(tx);
+                    transactionWindowSnapshotService.addFee(tx.feePerVSize());
                 }
             }
         });

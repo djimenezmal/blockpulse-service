@@ -1,15 +1,13 @@
 package com.blockchain.blockpulseservice.service;
 
 import com.blockchain.blockpulseservice.client.rest.MempoolStatsUpdater;
-import com.blockchain.blockpulseservice.model.AnalyzedTransaction;
+import com.blockchain.blockpulseservice.model.AnalyzedTransactionDTO;
 import com.blockchain.blockpulseservice.model.Transaction;
 import com.blockchain.blockpulseservice.service.analysis.AnalysisContext;
 import com.blockchain.blockpulseservice.service.analysis.TransactionAnalyzer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
 
 @Slf4j
 @Service
@@ -37,16 +35,16 @@ public class TransactionAnalyzerService {
         }
     }
 
-    private AnalyzedTransaction mapToAnalyzedTransaction(AnalysisContext context) {
-        return new AnalyzedTransaction(
+    private AnalyzedTransactionDTO mapToAnalyzedTransaction(AnalysisContext context) {
+        return new AnalyzedTransactionDTO(
                 context.getTransaction().hash(),
                 context.getTransaction().feePerVSize(),
                 context.getTransaction().totalFee(),
                 context.getTransaction().size(),
                 context.getTransaction().time(),
-                // TODO make it immutable list
-                new ArrayList<>(context.getInsights()),
-                context.getFeeClassification()
+                context.getInsights(),
+                context.getFeeClassification(),
+                context.isOutlier()
         );
     }
 }

@@ -18,7 +18,7 @@ public class SurgeAnalyzer extends BaseTransactionAnalyzer {
     protected AnalysisContext doAnalyze(AnalysisContext context) {
         var mempoolStats = context.getMempoolStats();
         var transaction = context.getTransaction();
-        boolean isSurge = context.hasInsight(InsightType.OUTLIER) &&
+        boolean isSurge = context.isOutlier() &&
                 transaction.feePerVSize() > mempoolStats.fastFeePerVByte() &&
                 mempoolStats.mempoolSize() >= mempoolThreshold;
         if (isSurge) {

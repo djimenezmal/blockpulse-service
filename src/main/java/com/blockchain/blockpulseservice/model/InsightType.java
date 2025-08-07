@@ -1,7 +1,7 @@
 package com.blockchain.blockpulseservice.model;
 
 public enum InsightType {
-    OUTLIER, SURGE
+    NONE, SURGE, FEE_WAR
 }
 
 

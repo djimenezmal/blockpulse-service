@@ -1,6 +1,6 @@
 package com.blockchain.blockpulseservice.service;
 
-import com.blockchain.blockpulseservice.model.AnalyzedTransaction;
+import com.blockchain.blockpulseservice.model.AnalyzedTransactionDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -13,8 +13,8 @@ public class NotificationService {
         this.messagingTemplate = messagingTemplate;
     }
 
-    public void sendAnalysis(AnalyzedTransaction analyzedTransaction) {
-        messagingTemplate.convertAndSend("/topic/transactions", analyzedTransaction);
-        log.info("Sent transaction analysis message: {}", analyzedTransaction);
+    public void sendAnalysis(AnalyzedTransactionDTO analyzedTransactionDTO) {
+        messagingTemplate.convertAndSend("/topic/transactions", analyzedTransactionDTO);
+        log.info("Sent transaction analysis message: {}", analyzedTransactionDTO);
     }
 }

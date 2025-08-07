@@ -1,6 +1,5 @@
 package com.blockchain.blockpulseservice.service.analysis;
 
-import com.blockchain.blockpulseservice.model.InsightType;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -17,7 +16,8 @@ public class OutlierAnalyzer extends BaseTransactionAnalyzer {
         double percentile = context.getTransactionWindowSnapshot().getPercentileFeeRate(outliersPercentileThreshold);
         if (context.getTransaction().feePerVSize() > percentile) {
             return context
-                    .addInsight(InsightType.OUTLIER)
+                    .toBuilder()
+                    .isOutlier(true)
                     .build();
         }
         return context;

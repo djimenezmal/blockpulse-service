@@ -29,7 +29,7 @@ public class TransactionWindowSnapshot {
         if (transactions.isEmpty() || percentile < 0 || percentile > 100) {
             return 0.0;
         }
-        int index = (int) Math.ceil(percentile / 100.0 * transactions.size()) - 1;
+        int index = (int) Math.ceil(percentile / 100 * transactions.size()) - 1;
         return transactions.get(Math.max(0, index)).feePerVSize();
     }
 }

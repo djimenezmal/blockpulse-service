@@ -14,16 +14,16 @@ import java.util.Set;
 @Builder(toBuilder = true)
 @Value
 public class AnalysisContext {
+    // input
     Transaction transaction;
     TransactionWindowSnapshot transactionWindowSnapshot;
     MempoolStats mempoolStats;
+    //output
     @Builder.Default
     Set<InsightType> insights = new HashSet<>();
     FeeClassification feeClassification;
-
-    public boolean hasInsight(InsightType insight) {
-        return insights.contains(insight);
-    }
+    @Builder.Default
+    boolean isOutlier = false;
     
     public AnalysisContextBuilder addInsight(InsightType insight) {
         return this.toBuilder().insights(new HashSet<>(this.insights) {{ add(insight); }});
