@@ -10,7 +10,7 @@ public class ThreadConfig {
     @Bean
     public ThreadFactory analyzerThreadFactory() {
         return r -> {
-            Thread thread = new Thread(r, "analyzer-thread");
+            Thread thread = new Thread(r, "sliding-window-thread");
             thread.setDaemon(true);
             return thread;
         };

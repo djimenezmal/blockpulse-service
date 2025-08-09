@@ -1,6 +1,7 @@
 package com.blockchain.blockpulseservice.service.analysis;
 
-import com.blockchain.blockpulseservice.model.InsightType;
+import com.blockchain.blockpulseservice.model.AnalysisContext;
+import com.blockchain.blockpulseservice.model.PatternType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -24,7 +25,7 @@ public class SurgeAnalyzer extends BaseTransactionAnalyzer {
         if (isSurge) {
             log.info("Surge detected for tx: {}", context.getTransaction().hash());
             return context
-                    .addInsight(InsightType.SURGE)
+                    .addInsight(PatternType.SURGE)
                     .build();
         }
         return context;

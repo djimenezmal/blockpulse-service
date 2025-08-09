@@ -3,10 +3,10 @@ package com.blockchain.blockpulseservice.service;
 import com.blockchain.blockpulseservice.client.rest.MempoolStatsUpdater;
 import com.blockchain.blockpulseservice.model.AnalyzedTransactionDTO;
 import com.blockchain.blockpulseservice.model.Transaction;
-import com.blockchain.blockpulseservice.service.analysis.AnalysisContext;
+import com.blockchain.blockpulseservice.model.AnalysisContext;
 import com.blockchain.blockpulseservice.service.analysis.TransactionAnalyzer;
-import com.blockchain.blockpulseservice.service.sliding_window.TransactionWindowSnapshot;
-import com.blockchain.blockpulseservice.service.sliding_window.TransactionWindowSnapshotDTO;
+import com.blockchain.blockpulseservice.model.TransactionWindowSnapshot;
+import com.blockchain.blockpulseservice.model.TransactionWindowSnapshotDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -40,11 +40,11 @@ public class TransactionAnalyzerService {
     private AnalyzedTransactionDTO mapToAnalyzedTransaction(AnalysisContext context) {
         return AnalyzedTransactionDTO.builder()
                 .id(context.getTransaction().hash())
-                .feePerVSize(context.getTransaction().feePerVSize())
+                .feePerVByte(context.getTransaction().feePerVSize())
                 .totalFee(context.getTransaction().totalFee())
                 .size(context.getTransaction().size())
-                .time(context.getTransaction().time())
-                .insights(context.getInsights())
+                .timestamp(context.getTransaction().time())
+                .patterns(context.getPatterns())
                 .feeClassification(context.getFeeClassification())
                 .isOutlier(context.isOutlier())
                 .windowSnapshotDTO(mapToTransactionWindowSnapshotDTO(context.getTransactionWindowSnapshot()))

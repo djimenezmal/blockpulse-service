@@ -1,6 +1,7 @@
 package com.blockchain.blockpulseservice.service.sliding_window;
 
 import com.blockchain.blockpulseservice.model.Transaction;
+import com.blockchain.blockpulseservice.model.TransactionWindowSnapshot;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -12,12 +13,21 @@ import java.util.List;
 class TransactionWindowSnapshotService {
     private final TransactionsPercentile percentile;
     private final double outliersPercentileThreshold;
+    private final double firstQuartileThreshold;
+    private final double thirdQuartileThreshold;
     private double sum = 0;
 
     public TransactionWindowSnapshotService(TransactionsPercentile percentile,
-                                            @Value("${app.analysis.tx.outliers-percentile-threshold:0.99}") double outliersPercentileThreshold) {
+                                            @Value("${app.analysis.tx.outliers-percentile-threshold:0.99}")
+                                            double outliersPercentileThreshold,
+                                            @Value("${app.analysis.tx.local-first-quartile:0.25}")
+                                            double firstQuartileThreshold,
+                                            @Value("${app.analysis.tx.local-third-quartile:0.75}")
+                                            double thirdQuartileThreshold) {
         this.percentile = percentile;
         this.outliersPercentileThreshold = outliersPercentileThreshold;
+        this.firstQuartileThreshold = firstQuartileThreshold;
+        this.thirdQuartileThreshold = thirdQuartileThreshold;
     }
 
     public void addFee(double feePerVSize) {
@@ -40,23 +50,12 @@ class TransactionWindowSnapshotService {
         return new TransactionWindowSnapshot(
                 totalTransactions,
                 averageFeeRate,
-                getMedianFeeRate(transactionsPerFeeRate),
-                getNumOfOutliers(transactionsPerFeeRate),
+                percentile.getMedianFeeRate(transactionsPerFeeRate),
+                percentile.getNumOfOutliers(outliersPercentileThreshold, totalTransactions),
                 percentile.getPercentileFeeRate(outliersPercentileThreshold, transactionsPerFeeRate),
+                percentile.getPercentileFeeRate(firstQuartileThreshold, transactionsPerFeeRate),
+                percentile.getPercentileFeeRate(thirdQuartileThreshold, transactionsPerFeeRate),
                 transactionsPerFeeRate
         );
-    }
-
-    private double getMedianFeeRate(List<Transaction> transactionsPerFeeRate) {
-        int size = transactionsPerFeeRate.size();
-        if (size % 2 == 0) {
-            return (transactionsPerFeeRate.get(size / 2 - 1).feePerVSize() + transactionsPerFeeRate.get(size / 2).feePerVSize()) / 2.0;
-        } else {
-            return transactionsPerFeeRate.get(size / 2).feePerVSize();
-        }
-    }
-    public int getNumOfOutliers(List<Transaction> transactions) {
-        int totalTransactions = transactions.size();
-        return totalTransactions - percentile.getPercentileIndex(outliersPercentileThreshold, totalTransactions);
     }
 }

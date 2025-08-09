@@ -1,5 +1,6 @@
 package com.blockchain.blockpulseservice.service.analysis;
 
+import com.blockchain.blockpulseservice.model.AnalysisContext;
 import org.springframework.stereotype.Component;
 
 @Component

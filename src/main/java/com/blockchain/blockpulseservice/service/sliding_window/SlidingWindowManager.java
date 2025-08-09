@@ -88,6 +88,7 @@ public class SlidingWindowManager {
                     transactionsPerFeeRate.add(newTx);
                     transactionWindowSnapshotService.addFee(newTx.feePerVSize());
                 }
+
             }
         });
     }

@@ -44,7 +44,7 @@ app:
   analysis:
     tx:
       sliding-window-size: 1000
-      local-cheap-percentile: 0.25
-      local-normal-percentile: 0.75
+      local-first-quartile: 0.25
+      local-third-quartile: 0.75
       outliers-percentile-threshold: 0.99
       mempool-congestion-vbytes-threshold: 100

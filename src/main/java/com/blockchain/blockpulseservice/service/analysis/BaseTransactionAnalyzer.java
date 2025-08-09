@@ -1,5 +1,7 @@
 package com.blockchain.blockpulseservice.service.analysis;
 
+import com.blockchain.blockpulseservice.model.AnalysisContext;
+
 public abstract class BaseTransactionAnalyzer implements TransactionAnalyzer {
     private TransactionAnalyzer next;
 
