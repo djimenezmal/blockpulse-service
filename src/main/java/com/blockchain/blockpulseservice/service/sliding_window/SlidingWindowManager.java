@@ -42,17 +42,24 @@ public class SlidingWindowManager {
         analyzerThread = analyzerThreadFactory.newThread(() -> {
             log.info("Started analyzer thread {}", analyzerThread.getName());
             while (running.get() && !Thread.currentThread().isInterrupted()) {
-                Transaction tx = null;
                 try {
-                    tx = transactionQueue.take();
+                    var tx = transactionQueue.take();
+
+                    if (transactionsPerFeeRate.size() >= slidingWindowSize) {
+                        var oldestTx = transactionsPerFeeRate.remove(0);
+                        transactionWindowSnapshotService.subtractFee(oldestTx.feePerVSize());
+                        log.debug("Sliding window is full, removing oldest transaction: {}", oldestTx.hash());
+                    }
+
+                    transactionsPerFeeRate.add(tx);
+                    transactionWindowSnapshotService.addFee(tx.feePerVSize());
+
+                    var snapshot = transactionWindowSnapshotService.takeCurrentWindowSnapshot(transactionsPerFeeRate);
+                    analyzerService.processTransaction(tx, snapshot);
                 } catch (InterruptedException e) {
                     log.warn("Thread interrupted while waiting for transaction", e);
                     running.set(false);
                     Thread.currentThread().interrupt();
-                }
-                if (tx != null) {
-                    var snapshot = transactionWindowSnapshotService.takeCurrentWindowSnapshot(transactionsPerFeeRate);
-                    analyzerService.processTransaction(tx, snapshot);
                 }
             }
         });
@@ -75,22 +82,13 @@ public class SlidingWindowManager {
     }
 
     public void addTransaction(List<Transaction> transactions) {
-        transactions.forEach(newTx -> {
-            if (isValidTransaction(newTx)) {
-                if (transactionQueue.size() >= slidingWindowSize) {
-                    log.debug("Sliding window is full, removing oldest transaction: {}", transactionsPerFeeRate.getFirst().hash());
-                    var oldestTx = transactionQueue.poll();
-                    transactionsPerFeeRate.remove(oldestTx);
-                    transactionWindowSnapshotService.subtractFee(oldestTx.feePerVSize());
-                }
-                if (transactionQueue.offer(newTx)) {
-                    log.debug("Added transaction to sliding window: {}", newTx.hash());
-                    transactionsPerFeeRate.add(newTx);
-                    transactionWindowSnapshotService.addFee(newTx.feePerVSize());
-                }
-
-            }
-        });
+        transactions.stream()
+                .filter(this::isValidTransaction)
+                .forEach(tx -> {
+                    if (transactionQueue.offer(tx)) {
+                        log.debug("Queued transaction for analysis: {}", tx.hash());
+                    }
+                });
     }
 
     private boolean isValidTransaction(Transaction tx) {
