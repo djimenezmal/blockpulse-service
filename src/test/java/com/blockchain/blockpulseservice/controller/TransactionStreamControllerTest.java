@@ -1,6 +1,6 @@
 package com.blockchain.blockpulseservice.controller;
 
-import com.blockchain.blockpulseservice.service.NotificationService;
+import com.blockchain.blockpulseservice.service.AnalyzedTransactionEmitter;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -12,15 +12,15 @@ import static org.mockito.Mockito.when;
 class TransactionStreamControllerTest {
 
     @Test
-    void streamTransactionsDelegatesToNotificationService() {
-        NotificationService service = mock(NotificationService.class);
-        SseEmitter emitter = new SseEmitter();
-        when(service.subscribe()).thenReturn(emitter);
+    void streamTransactionsDelegatesToEmitter() {
+        var emitterService = mock(AnalyzedTransactionEmitter.class);
+        var emitter = new SseEmitter();
+        when(emitterService.subscribe()).thenReturn(emitter);
 
-        TransactionStreamController controller = new TransactionStreamController(service);
-        SseEmitter result = controller.streamTransactions();
+        var controller = new TransactionStreamController(emitterService);
+        var result = controller.streamTransactions();
 
         assertSame(emitter, result);
-        verify(service).subscribe();
+        verify(emitterService).subscribe();
     }
 }

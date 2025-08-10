@@ -14,11 +14,11 @@ import java.util.concurrent.CopyOnWriteArrayList;
  */
 @Slf4j
 @Service
-public class NotificationService {
+public class AnalyzedTransactionEmitter {
 
     private final CopyOnWriteArrayList<SseEmitter> emitters;
 
-    public NotificationService(CopyOnWriteArrayList<SseEmitter> emitters) {
+    public AnalyzedTransactionEmitter(CopyOnWriteArrayList<SseEmitter> emitters) {
         this.emitters = emitters;
     }
 

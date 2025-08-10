@@ -16,15 +16,14 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import java.io.IOException;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 
 @SpringBootTest
-class NotificationServiceIntegrationTest {
+class AnalyzedTransactionEmitterIntegrationTest {
 
     @Autowired
-    private NotificationService notificationService;
+    private AnalyzedTransactionEmitter analyzedTransactionEmitter;
 
     @Autowired
     private CopyOnWriteArrayList<SseEmitter> emitters;
@@ -36,16 +35,16 @@ class NotificationServiceIntegrationTest {
 
     @Test
     void subscriberReceivesTransactionsMessage() throws Exception {
-        BlockingQueue<AnalyzedTransactionDTO> queue = new ArrayBlockingQueue<>(1);
+        var queue = new ArrayBlockingQueue<AnalyzedTransactionDTO>(1);
 
-        SseEmitter emitter = new SseEmitter(Long.MAX_VALUE) {
+        var emitter = new SseEmitter(Long.MAX_VALUE) {
             @Override
             protected void sendInternal(Object object, MediaType mediaType) throws IOException {
                 queue.offer((AnalyzedTransactionDTO) object);
             }
         };
 
-        notificationService.subscribe(emitter);
+        analyzedTransactionEmitter.subscribe(emitter);
 
         var dto = AnalyzedTransactionDTO.builder()
                 .id("tx1")
@@ -59,9 +58,9 @@ class NotificationServiceIntegrationTest {
                 .windowSnapshotDTO(new TransactionWindowSnapshotDTO(1, 1.0, 1.0, 0))
                 .build();
 
-        notificationService.sendAnalysis(dto);
+        analyzedTransactionEmitter.sendAnalysis(dto);
 
-        AnalyzedTransactionDTO received = queue.poll(3, TimeUnit.SECONDS);
+        var received = queue.poll(3, TimeUnit.SECONDS);
         assertNotNull(received);
         assertEquals(dto, received);
     }
