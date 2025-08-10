@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class TransactionAnalyzerService {
     private final TransactionAnalyzer analysisChain;
-    private final NotificationService notificationService;
+    private final AnalyzedTransactionEmitter analyzedTransactionEmitter;
     private final MempoolStatsUpdater mempoolStatsUpdater;
 
     public void processTransaction(Transaction transaction, TransactionWindowSnapshot transactionWindowSnapshot) {
@@ -31,7 +31,7 @@ public class TransactionAnalyzerService {
             var result = analysisChain.analyze(context);
             var analyzedTransaction = mapToAnalyzedTransaction(result);
             log.debug("Analyzed transaction: {}", analyzedTransaction);
-            notificationService.sendAnalysis(analyzedTransaction);
+            analyzedTransactionEmitter.sendAnalysis(analyzedTransaction);
         } catch (Exception e) {
             log.error("Failed to process transaction {}: {}", transaction.hash(), e.getMessage(), e);
         }
