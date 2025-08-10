@@ -10,7 +10,7 @@ import java.util.List;
 
 @Slf4j
 @Service
-class TransactionWindowSnapshotService {
+public class TransactionWindowSnapshotService {
     private final TransactionsPercentile percentile;
     private final double outliersPercentileThreshold;
     private final double firstQuartileThreshold;

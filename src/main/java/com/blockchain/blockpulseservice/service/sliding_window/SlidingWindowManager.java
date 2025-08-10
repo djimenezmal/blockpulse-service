@@ -45,11 +45,7 @@ public class SlidingWindowManager {
                 try {
                     var tx = transactionQueue.take();
 
-                    if (transactionsPerFeeRate.size() >= slidingWindowSize) {
-                        var oldestTx = transactionsPerFeeRate.remove(0);
-                        transactionWindowSnapshotService.subtractFee(oldestTx.feePerVSize());
-                        log.debug("Sliding window is full, removing oldest transaction: {}", oldestTx.hash());
-                    }
+                    resizeSortedTransactionsPerFeeRate();
 
                     transactionsPerFeeRate.add(tx);
                     transactionWindowSnapshotService.addFee(tx.feePerVSize());
@@ -89,6 +85,14 @@ public class SlidingWindowManager {
                         log.debug("Queued transaction for analysis: {}", tx.hash());
                     }
                 });
+    }
+
+    private void resizeSortedTransactionsPerFeeRate() {
+        if (transactionsPerFeeRate.size() >= slidingWindowSize) {
+            var oldestTx = transactionsPerFeeRate.removeFirst();
+            transactionWindowSnapshotService.subtractFee(oldestTx.feePerVSize());
+            log.debug("Sliding window is full, removing oldest transaction: {}", oldestTx.hash());
+        }
     }
 
     private boolean isValidTransaction(Transaction tx) {

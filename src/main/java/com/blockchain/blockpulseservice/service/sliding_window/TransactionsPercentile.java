@@ -1,23 +1,15 @@
 package com.blockchain.blockpulseservice.service.sliding_window;
 
 import com.blockchain.blockpulseservice.model.Transaction;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-@Slf4j
 @Component
 public class TransactionsPercentile {
     public double getPercentileFeeRate(double percentile, List<Transaction> transactions) {
-        int index = Math.max(0, getPercentileIndex(percentile, transactions.size()));
-        try {
-            return transactions.get(index).feePerVSize();
-        } catch (Exception e) {
-            log.error("Error getting percentile fee rate for index: {}. Transactions size is: {}", index, transactions.size(), e);
-            System.exit(1);
-            return -1;
-        }
+        int index = getPercentileIndex(percentile, transactions.size());
+        return transactions.get(Math.max(0,index)).feePerVSize();
     }
 
     public int getNumOfOutliers(double outliersPercentileThreshold, int totalTransactions) {
