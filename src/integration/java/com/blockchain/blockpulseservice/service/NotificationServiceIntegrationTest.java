@@ -4,6 +4,7 @@ import com.blockchain.blockpulseservice.model.AnalyzedTransactionDTO;
 import com.blockchain.blockpulseservice.model.FeeClassification;
 import com.blockchain.blockpulseservice.model.PatternType;
 import com.blockchain.blockpulseservice.model.TransactionWindowSnapshotDTO;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -16,6 +17,7 @@ import java.io.IOException;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 
 @SpringBootTest
@@ -23,6 +25,14 @@ class NotificationServiceIntegrationTest {
 
     @Autowired
     private NotificationService notificationService;
+
+    @Autowired
+    private CopyOnWriteArrayList<SseEmitter> emitters;
+
+    @AfterEach
+    void tearDown() {
+        emitters.clear();
+    }
 
     @Test
     void subscriberReceivesTransactionsMessage() throws Exception {
