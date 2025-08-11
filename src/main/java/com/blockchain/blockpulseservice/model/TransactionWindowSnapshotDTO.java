@@ -1,8 +1,10 @@
 package com.blockchain.blockpulseservice.model;
 
+import java.math.BigDecimal;
+
 public record TransactionWindowSnapshotDTO(
-        int totalTransactions,
-        double averageFeeRatePerVByte,
-        double medianFeeRatePerVByte,
-        int numOfOutliers) {
+        int transactionsCount,
+        BigDecimal avgFeePerVByte,
+        BigDecimal medianFeePerVByte,
+        int outliersCount) {
 }

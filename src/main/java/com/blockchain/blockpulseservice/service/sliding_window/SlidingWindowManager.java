@@ -15,15 +15,17 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static java.math.BigDecimal.ZERO;
+
 @Slf4j
 @Component
 public class SlidingWindowManager {
-    private final TreeList<Transaction> transactionsPerFeeRate = new TreeList<>();
+    private final TreeList<Transaction> sortedTransactions = new TreeList<>();
     private final BlockingQueue<Transaction> transactionQueue = new LinkedBlockingQueue<>();
     private final int slidingWindowSize;
     private final TransactionAnalyzerService analyzerService;
-    private final ThreadFactory analyzerThreadFactory;
     private final TransactionWindowSnapshotService transactionWindowSnapshotService;
+    private final ThreadFactory analyzerThreadFactory;
     private Thread analyzerThread;
     private final AtomicBoolean running = new AtomicBoolean(true);
 
@@ -47,10 +49,10 @@ public class SlidingWindowManager {
 
                     resizeSortedTransactionsPerFeeRate();
 
-                    transactionsPerFeeRate.add(tx);
+                    sortedTransactions.add(tx);
                     transactionWindowSnapshotService.addFee(tx.feePerVSize());
 
-                    var snapshot = transactionWindowSnapshotService.takeCurrentWindowSnapshot(transactionsPerFeeRate);
+                    var snapshot = transactionWindowSnapshotService.takeCurrentWindowSnapshot(sortedTransactions);
                     analyzerService.processTransaction(tx, snapshot);
                 } catch (InterruptedException e) {
                     log.warn("Thread interrupted while waiting for transaction", e);
@@ -81,6 +83,7 @@ public class SlidingWindowManager {
         transactions.stream()
                 .filter(this::isValidTransaction)
                 .forEach(tx -> {
+                    log.error("XQUE {}", tx);
                     if (transactionQueue.offer(tx)) {
                         log.debug("Queued transaction for analysis: {}", tx.hash());
                     }
@@ -88,20 +91,20 @@ public class SlidingWindowManager {
     }
 
     private void resizeSortedTransactionsPerFeeRate() {
-        if (transactionsPerFeeRate.size() >= slidingWindowSize) {
-            var oldestTx = transactionsPerFeeRate.removeFirst();
+        if (sortedTransactions.size() >= slidingWindowSize) {
+            var oldestTx = sortedTransactions.removeFirst();
             transactionWindowSnapshotService.subtractFee(oldestTx.feePerVSize());
             log.debug("Sliding window is full, removing oldest transaction: {}", oldestTx.hash());
         }
     }
 
     private boolean isValidTransaction(Transaction tx) {
-        if (tx.feePerVSize() < 0) {
+        if (tx.feePerVSize().compareTo(ZERO) < 0) {
             log.warn("Invalid fee rate: {}", tx.feePerVSize());
             return false;
         }
-        if (tx.size() <= 0) {
-            log.warn("Invalid transaction size: {}", tx.size());
+        if (tx.vSize() <= 0) {
+            log.warn("Invalid transaction vSize: {}", tx.vSize());
             return false;
         }
         return true;

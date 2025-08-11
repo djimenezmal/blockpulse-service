@@ -1,7 +1,7 @@
 package com.blockchain.blockpulseservice.client.rest;
 
-import com.blockchain.blockpulseservice.dto.RecommendedTransactionFeeDTO;
-import com.blockchain.blockpulseservice.dto.MempoolInfoDTO;
+import com.blockchain.blockpulseservice.model.dto.RecommendedTransactionFeeDTO;
+import com.blockchain.blockpulseservice.model.dto.MempoolInfoDTO;
 import com.blockchain.blockpulseservice.model.MempoolStats;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

@@ -7,8 +7,8 @@ import org.springframework.stereotype.Component;
 public class OutlierAnalyzer extends BaseTransactionAnalyzer {
     @Override
     protected AnalysisContext doAnalyze(AnalysisContext context) {
-        double percentile = context.getTransactionWindowSnapshot().outlierFeeRatePercentile();
-        if (context.getTransaction().feePerVSize() > percentile) {
+        var percentile = context.getTransactionWindowSnapshot().outlierFeePerVBytePercentile();
+        if (context.getTransaction().feePerVSize().compareTo(percentile) > 0) {
             return context
                     .toBuilder()
                     .isOutlier(true)

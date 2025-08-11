@@ -1,6 +1,6 @@
 package com.blockchain.blockpulseservice.service;
 
-import com.blockchain.blockpulseservice.model.AnalyzedTransactionDTO;
+import com.blockchain.blockpulseservice.model.dto.AnalyzedTransactionDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -29,7 +29,7 @@ public class AnalyzedTransactionEmitter {
         return subscribe(new SseEmitter(Long.MAX_VALUE));
     }
 
-    /* package-private */ SseEmitter subscribe(SseEmitter emitter) {
+    SseEmitter subscribe(SseEmitter emitter) {
         emitters.add(emitter);
         emitter.onCompletion(() -> emitters.remove(emitter));
         emitter.onTimeout(() -> emitters.remove(emitter));

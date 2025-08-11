@@ -1,7 +1,7 @@
 package com.blockchain.blockpulseservice.service;
 
 import com.blockchain.blockpulseservice.client.rest.MempoolStatsUpdater;
-import com.blockchain.blockpulseservice.model.AnalyzedTransactionDTO;
+import com.blockchain.blockpulseservice.model.dto.AnalyzedTransactionDTO;
 import com.blockchain.blockpulseservice.model.Transaction;
 import com.blockchain.blockpulseservice.model.AnalysisContext;
 import com.blockchain.blockpulseservice.service.analysis.TransactionAnalyzer;
@@ -42,20 +42,20 @@ public class TransactionAnalyzerService {
                 .id(context.getTransaction().hash())
                 .feePerVByte(context.getTransaction().feePerVSize())
                 .totalFee(context.getTransaction().totalFee())
-                .size(context.getTransaction().size())
+                .size(context.getTransaction().vSize())
                 .timestamp(context.getTransaction().time())
-                .patterns(context.getPatterns())
+                .patternTypes(context.getPatterns())
                 .feeClassification(context.getFeeClassification())
                 .isOutlier(context.isOutlier())
-                .windowSnapshotDTO(mapToTransactionWindowSnapshotDTO(context.getTransactionWindowSnapshot()))
+                .windowSnapshot(mapToTransactionWindowSnapshotDTO(context.getTransactionWindowSnapshot()))
                 .build();
     }
 
     private TransactionWindowSnapshotDTO mapToTransactionWindowSnapshotDTO(TransactionWindowSnapshot windowSnapshot) {
         return new TransactionWindowSnapshotDTO(
-                windowSnapshot.totalTransactions(),
-                windowSnapshot.averageFeeRatePerVSize(),
-                windowSnapshot.medianFeeRatePerVSize(),
-                windowSnapshot.numOfOutliers());
+                windowSnapshot.transactionsCount(),
+                windowSnapshot.avgFeePerVByte(),
+                windowSnapshot.medianFeePerVByte(),
+                windowSnapshot.outliersCount());
     }
 }

@@ -1,4 +1,4 @@
-package com.blockchain.blockpulseservice.dto;
+package com.blockchain.blockpulseservice.model.dto;
 
 public record RecommendedTransactionFeeDTO(double fastestFee,
                                            double halfHourFee,

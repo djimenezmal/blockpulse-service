@@ -1,6 +1,6 @@
 package com.blockchain.blockpulseservice.service;
 
-import com.blockchain.blockpulseservice.model.AnalyzedTransactionDTO;
+import com.blockchain.blockpulseservice.model.dto.AnalyzedTransactionDTO;
 import com.blockchain.blockpulseservice.model.FeeClassification;
 import com.blockchain.blockpulseservice.model.PatternType;
 import com.blockchain.blockpulseservice.model.TransactionWindowSnapshotDTO;
@@ -38,7 +38,6 @@ class AnalyzedTransactionEmitterIntegrationTest {
         var queue = new ArrayBlockingQueue<AnalyzedTransactionDTO>(1);
 
         var emitter = new SseEmitter(Long.MAX_VALUE) {
-            @Override
             protected void sendInternal(Object object, MediaType mediaType) throws IOException {
                 queue.offer((AnalyzedTransactionDTO) object);
             }
@@ -52,10 +51,10 @@ class AnalyzedTransactionEmitterIntegrationTest {
                 .totalFee(1.0)
                 .size(1)
                 .timestamp(1L)
-                .patterns(Set.of(PatternType.SURGE))
+                .patternTypes(Set.of(PatternType.SURGE))
                 .feeClassification(FeeClassification.CHEAP)
                 .isOutlier(false)
-                .windowSnapshotDTO(new TransactionWindowSnapshotDTO(1, 1.0, 1.0, 0))
+                .windowSnapshot(new TransactionWindowSnapshotDTO(1, 1.0, 1.0, 0))
                 .build();
 
         analyzedTransactionEmitter.sendAnalysis(dto);

@@ -2,7 +2,7 @@ package com.blockchain.blockpulseservice.client.ws;
 
 import com.blockchain.blockpulseservice.client.ws.manager.ConnectionStateManager;
 import com.blockchain.blockpulseservice.client.ws.manager.ReconnectionManager;
-import com.blockchain.blockpulseservice.dto.MempoolTransactionsDTOWrapper;
+import com.blockchain.blockpulseservice.model.dto.MempoolTransactionsDTOWrapper;
 import com.blockchain.blockpulseservice.mapper.TransactionMapper;
 import com.blockchain.blockpulseservice.service.sliding_window.SlidingWindowManager;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -52,12 +52,15 @@ public class MempoolSpaceWebSocketClient extends BaseWebSocketSessionClient {
 
     @Override
     protected void processMessage(String message) {
-        log.info("Processing message: {}", message.substring(0, Math.min(200, message.length())));
+        log.debug("Processing message: {}", message.substring(0, Math.min(200, message.length())));
 
         try {
             var txWrapper = objectMapper.readValue(message, MempoolTransactionsDTOWrapper.class);
-            var txs = transactionMapper.mapToTransaction(txWrapper.mempoolTransactions().added());
-            slidingWindowManager.addTransaction(txs);
+            var mempoolTransactions = txWrapper.mempoolTransactions();
+            if (mempoolTransactions != null) {
+                var txs = transactionMapper.mapToTransaction(mempoolTransactions.added());
+                slidingWindowManager.addTransaction(txs);
+            }
         } catch (Exception e) {
             log.error("Error processing blockchain.info message: {}", message, e);
         }

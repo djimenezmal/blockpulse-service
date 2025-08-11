@@ -1,17 +1,20 @@
 package com.blockchain.blockpulseservice.model;
 
-import java.util.Collections;
+import java.math.BigDecimal;
 import java.util.List;
 
-public record TransactionWindowSnapshot(int totalTransactions,
-                                        double averageFeeRatePerVSize,
-                                        double medianFeeRatePerVSize,
-                                        int numOfOutliers,
-                                        double outlierFeeRatePercentile,
-                                        double firstQuartile,
-                                        double thirdQuartile,
+import static java.math.BigDecimal.ZERO;
+import static java.util.Collections.emptyList;
+
+public record TransactionWindowSnapshot(int transactionsCount,
+                                        BigDecimal avgFeePerVByte,
+                                        BigDecimal medianFeePerVByte,
+                                        int outliersCount,
+                                        BigDecimal outlierFeePerVBytePercentile,
+                                        BigDecimal firstQuartile,
+                                        BigDecimal thirdQuartile,
                                         List<Transaction> transactions) {
     public static TransactionWindowSnapshot empty() {
-        return new TransactionWindowSnapshot(0, 0.0, 0.0, 0, 0.0, 0.0,0.0, Collections.emptyList());
+        return new TransactionWindowSnapshot(0, ZERO, ZERO, 0, ZERO,  ZERO,ZERO, emptyList());
     }
 }

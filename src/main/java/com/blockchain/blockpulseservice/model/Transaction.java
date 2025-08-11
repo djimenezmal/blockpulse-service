@@ -1,11 +1,13 @@
 package com.blockchain.blockpulseservice.model;
 
+import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.Objects;
 
-public record Transaction(String hash, double feePerVSize, double totalFee, int size, long time) implements Comparable<Transaction> {
+public record Transaction(String hash, BigDecimal feePerVSize, BigDecimal totalFee, int vSize, Instant time) implements Comparable<Transaction> {
     @Override
     public int compareTo(Transaction other) {
-        int cmp = Double.compare(this.feePerVSize, other.feePerVSize);
+        int cmp = this.feePerVSize.compareTo(other.feePerVSize);
         return cmp == 0 ? this.hash.compareTo(other.hash()) : cmp;
     }
 

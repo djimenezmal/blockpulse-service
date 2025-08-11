@@ -6,6 +6,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
+
 @Slf4j
 @Component
 public class SurgeAnalyzer extends BaseTransactionAnalyzer {
@@ -20,7 +22,7 @@ public class SurgeAnalyzer extends BaseTransactionAnalyzer {
         var mempoolStats = context.getMempoolStats();
         var transaction = context.getTransaction();
         boolean isSurge = context.isOutlier() &&
-                transaction.feePerVSize() > mempoolStats.fastFeePerVByte() &&
+                isFarBeyondRecommendedFastFee(transaction.feePerVSize(), mempoolStats.fastFeePerVByte()) &&
                 mempoolStats.mempoolSize() >= mempoolThreshold;
         if (isSurge) {
             log.info("Surge detected for tx: {}", context.getTransaction().hash());
@@ -29,5 +31,9 @@ public class SurgeAnalyzer extends BaseTransactionAnalyzer {
                     .build();
         }
         return context;
+    }
+
+    private boolean isFarBeyondRecommendedFastFee(BigDecimal feePerVSize, double fastFeePerVByte) {
+        return (feePerVSize.compareTo(BigDecimal.valueOf(fastFeePerVByte)) > 0);
     }
 }

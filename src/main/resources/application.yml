@@ -8,6 +8,10 @@ spring:
 
 server:
   port: 8080
+  compression:
+    enabled: true
+    mime-types: application/json,text/html,text/plain
+
 
 logging:
   level:
@@ -38,13 +42,8 @@ app:
       max-attempts: 10
       initial-delay-seconds: 5
       max-delay-seconds: 30
-#    blockchain.info:
-#      ws:
-#        uri: wss://ws.blockchain.info/inv
   analysis:
     tx:
       sliding-window-size: 1000
-      local-first-quartile: 0.25
-      local-third-quartile: 0.75
       outliers-percentile-threshold: 0.99
       mempool-congestion-vbytes-threshold: 100

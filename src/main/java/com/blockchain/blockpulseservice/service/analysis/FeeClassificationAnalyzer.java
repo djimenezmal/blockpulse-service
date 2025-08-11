@@ -5,6 +5,8 @@ import com.blockchain.blockpulseservice.model.FeeClassification;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
+
 @Component
 public class FeeClassificationAnalyzer extends BaseTransactionAnalyzer {
     private final int mempoolSizeThreshold;
@@ -27,21 +29,21 @@ public class FeeClassificationAnalyzer extends BaseTransactionAnalyzer {
         var feePerVSize = context.getTransaction().feePerVSize();
         if (mempoolStats.mempoolSize() > mempoolSizeThreshold) {
             // Network congested → use mempool recommended fees
-            if (feePerVSize < mempoolStats.fastFeePerVByte()) {
+            if (feePerVSize.compareTo(BigDecimal.valueOf(mempoolStats.fastFeePerVByte())) > 0) {
                 return FeeClassification.CHEAP;
-            } else if (feePerVSize <= mempoolStats.mediumFeePerVByte()) {
+            } else if (feePerVSize.compareTo(BigDecimal.valueOf(mempoolStats.mediumFeePerVByte())) <= 0) {
                 return FeeClassification.NORMAL;
             } else {
                 return FeeClassification.EXPENSIVE;
             }
         } else {
             // Normal network → use local percentiles
-            double firstQuartile = context.getTransactionWindowSnapshot().firstQuartile();
-            double thirdQuartile = context.getTransactionWindowSnapshot().thirdQuartile();
+            var firstQuartile = context.getTransactionWindowSnapshot().firstQuartile();
+            var thirdQuartile = context.getTransactionWindowSnapshot().thirdQuartile();
 
-            if (feePerVSize < firstQuartile) {
+            if (feePerVSize.compareTo(firstQuartile) < 0) {
                 return FeeClassification.CHEAP;
-            } else if (feePerVSize <= thirdQuartile) {
+            } else if (feePerVSize.compareTo(thirdQuartile) <= 0) {
                 return FeeClassification.NORMAL;
             } else {
                 return FeeClassification.EXPENSIVE;
