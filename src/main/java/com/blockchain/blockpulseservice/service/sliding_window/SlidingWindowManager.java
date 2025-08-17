@@ -83,7 +83,6 @@ public class SlidingWindowManager {
         transactions.stream()
                 .filter(this::isValidTransaction)
                 .forEach(tx -> {
-                    log.error("XQUE {}", tx);
                     if (transactionQueue.offer(tx)) {
                         log.debug("Queued transaction for analysis: {}", tx.hash());
                     }

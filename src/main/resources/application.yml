@@ -1,6 +1,9 @@
 spring:
   application:
     name: blockpulse-service
+  threads:
+    virtual:
+      enabled: true
   jackson:
     serialization:
       write-dates-as-timestamps: false

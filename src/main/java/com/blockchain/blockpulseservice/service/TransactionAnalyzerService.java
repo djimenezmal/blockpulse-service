@@ -11,12 +11,16 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+import java.util.concurrent.atomic.AtomicInteger;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class TransactionAnalyzerService {
+    private final AtomicInteger counter = new AtomicInteger(0);
     private final TransactionAnalyzer analysisChain;
-    private final AnalyzedTransactionEmitter analyzedTransactionEmitter;
+    private final AnalysisStream analysisStream;
     private final MempoolStatsUpdater mempoolStatsUpdater;
 
     public void processTransaction(Transaction transaction, TransactionWindowSnapshot transactionWindowSnapshot) {
@@ -31,7 +35,7 @@ public class TransactionAnalyzerService {
             var result = analysisChain.analyze(context);
             var analyzedTransaction = mapToAnalyzedTransaction(result);
             log.debug("Analyzed transaction: {}", analyzedTransaction);
-            analyzedTransactionEmitter.sendAnalysis(analyzedTransaction);
+            analysisStream.publish(analyzedTransaction);
         } catch (Exception e) {
             log.error("Failed to process transaction {}: {}", transaction.hash(), e.getMessage(), e);
         }
@@ -40,6 +44,8 @@ public class TransactionAnalyzerService {
     private AnalyzedTransactionDTO mapToAnalyzedTransaction(AnalysisContext context) {
         return AnalyzedTransactionDTO.builder()
                 .id(context.getTransaction().hash())
+                .seq(counter.incrementAndGet())
+                .producedAt(Instant.now())
                 .feePerVByte(context.getTransaction().feePerVSize())
                 .totalFee(context.getTransaction().totalFee())
                 .size(context.getTransaction().vSize())

@@ -11,6 +11,8 @@ import java.util.Set;
 
 @Builder
 public record AnalyzedTransactionDTO(String id,
+                                     int seq,
+                                     Instant producedAt,
                                      BigDecimal feePerVByte,
                                      BigDecimal totalFee,
                                      int size,
