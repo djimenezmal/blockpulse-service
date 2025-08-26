@@ -46,7 +46,7 @@ public class MempoolStatsUpdater {
                 .supplyAsync(fetchMempoolInfo(), ioExecutor)
                 .orTimeout(REQUEST_TIMEOUT, TimeUnit.SECONDS)
                 .exceptionally(ex -> {
-                    log.error("Failed to fetch mempool info", ex);
+                    log.error("Failed to update mempool stats", ex);
                     return null;
                 });
 
@@ -58,7 +58,7 @@ public class MempoolStatsUpdater {
         }).thenAccept(mempoolStats -> {
             if (mempoolStats != null) {
                 this.mempoolStats = mempoolStats;
-                log.info("Updated mempool data: {}", mempoolStats);
+                log.debug("Updated mempool data: {}", mempoolStats);
             } else {
                 log.warn("Skipping update due to missing data.");
             }

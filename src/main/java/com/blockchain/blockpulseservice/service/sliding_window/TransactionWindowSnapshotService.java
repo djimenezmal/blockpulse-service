@@ -50,8 +50,7 @@ public class TransactionWindowSnapshotService {
                 percentile.getNumOfOutliers(outliersPercentileThreshold, totalTransactions),
                 percentile.getPercentileFeeRate(outliersPercentileThreshold, sortedTransactions),
                 percentile.getPercentileFeeRate(FIRST_QUARTILE_THRESHOLD, sortedTransactions),
-                percentile.getPercentileFeeRate(THIRD_QUARTILE_THRESHOLD, sortedTransactions),
-                sortedTransactions
+                percentile.getPercentileFeeRate(THIRD_QUARTILE_THRESHOLD, sortedTransactions)
         );
     }
 }

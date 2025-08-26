@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Service
 @RequiredArgsConstructor
 public class TransactionAnalyzerService {
-    private final AtomicInteger counter = new AtomicInteger(0);
+    private final AtomicInteger txSequence = new AtomicInteger(0);
     private final TransactionAnalyzer analysisChain;
     private final AnalysisStream analysisStream;
     private final MempoolStatsUpdater mempoolStatsUpdater;
@@ -27,7 +27,7 @@ public class TransactionAnalyzerService {
         log.debug("Processing transaction: {}", transaction.hash());
         try {
             var context = AnalysisContext.builder()
-                    .transaction(transaction)
+                    .newTransaction(transaction)
                     .transactionWindowSnapshot(transactionWindowSnapshot)
                     .mempoolStats(mempoolStatsUpdater.getMempoolStats())
                     .build();
@@ -43,13 +43,13 @@ public class TransactionAnalyzerService {
 
     private AnalyzedTransactionDTO mapToAnalyzedTransaction(AnalysisContext context) {
         return AnalyzedTransactionDTO.builder()
-                .id(context.getTransaction().hash())
-                .seq(counter.incrementAndGet())
+                .id(context.getNewTransaction().hash())
+                .seq(txSequence.incrementAndGet())
                 .producedAt(Instant.now())
-                .feePerVByte(context.getTransaction().feePerVSize())
-                .totalFee(context.getTransaction().totalFee())
-                .size(context.getTransaction().vSize())
-                .timestamp(context.getTransaction().time())
+                .feePerVByte(context.getNewTransaction().feePerVSize())
+                .totalFee(context.getNewTransaction().totalFee())
+                .size(context.getNewTransaction().vSize())
+                .timestamp(context.getNewTransaction().time())
                 .patternTypes(context.getPatterns())
                 .feeClassification(context.getFeeClassification())
                 .isOutlier(context.isOutlier())

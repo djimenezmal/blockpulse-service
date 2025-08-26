@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 
-import static reactor.core.publisher.BufferOverflowStrategy.DROP_OLDEST;
+import java.time.Duration;
 
 @RestController
 @RequestMapping("/api/v1/transactions")
@@ -24,6 +24,6 @@ public class AnalysisController {
     public Flux<ServerSentEvent<AnalyzedTransactionDTO>> stream() {
         return stream.flux()
                 .map(dto -> ServerSentEvent.builder(dto).build())
-                .onBackpressureBuffer(32, DROP_OLDEST);
+                .sample(Duration.ofSeconds(2));
     }
 }

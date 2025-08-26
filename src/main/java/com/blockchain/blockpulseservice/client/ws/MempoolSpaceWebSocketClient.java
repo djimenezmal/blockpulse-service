@@ -67,6 +67,7 @@ public class MempoolSpaceWebSocketClient extends BaseWebSocketSessionClient {
     }
 
     private void subscribeToTrackMempoolTransactions() {
+        // TODO: to properties.
         var subscribeMessage = "{ \"track-mempool\": true }";
         sendMessage(subscribeMessage);
         log.info("Subscribed to track mempool transactions");

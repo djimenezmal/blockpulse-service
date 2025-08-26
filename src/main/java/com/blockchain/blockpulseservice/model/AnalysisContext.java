@@ -10,7 +10,7 @@ import java.util.Set;
 @Value
 public class AnalysisContext {
     // input
-    Transaction transaction;
+    Transaction newTransaction;
     TransactionWindowSnapshot transactionWindowSnapshot;
     MempoolStats mempoolStats;
     //output

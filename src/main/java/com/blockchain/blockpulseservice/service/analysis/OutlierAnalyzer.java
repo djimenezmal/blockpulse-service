@@ -8,7 +8,7 @@ public class OutlierAnalyzer extends BaseTransactionAnalyzer {
     @Override
     protected AnalysisContext doAnalyze(AnalysisContext context) {
         var percentile = context.getTransactionWindowSnapshot().outlierFeePerVBytePercentile();
-        if (context.getTransaction().feePerVSize().compareTo(percentile) > 0) {
+        if (context.getNewTransaction().feePerVSize().compareTo(percentile) > 0) {
             return context
                     .toBuilder()
                     .isOutlier(true)

@@ -26,7 +26,7 @@ public class FeeClassificationAnalyzer extends BaseTransactionAnalyzer {
 
     private FeeClassification classifyFee(AnalysisContext context) {
         var mempoolStats = context.getMempoolStats();
-        var feePerVSize = context.getTransaction().feePerVSize();
+        var feePerVSize = context.getNewTransaction().feePerVSize();
         if (mempoolStats.mempoolSize() > mempoolSizeThreshold) {
             // Network congested → use mempool recommended fees
             if (feePerVSize.compareTo(BigDecimal.valueOf(mempoolStats.fastFeePerVByte())) > 0) {
